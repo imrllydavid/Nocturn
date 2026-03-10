@@ -805,14 +805,14 @@
   .vote-option.voted .vote-thumb { opacity: 1; }
 
   /* ════════ FRIENDS PAGE ════════ */
-  .friend-plan-row {
+  .friend-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+    padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer;
     transition: opacity .15s;
   }
-  .friend-plan-row:last-child { border-bottom: none; }
-  .friend-plan-row:active { opacity: .7; }
-  .friend-row-l { display: flex; align-items: center; gap: 12px; }
+  .friend-row:last-child { border-bottom: none; }
+  .friend-row:active { opacity: .6; }
+  .friend-row-l { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
 
   .crew-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
   .crew-row:last-child { border-bottom:none; }
@@ -1040,6 +1040,15 @@
   .cp-invitee-tag span { cursor: pointer; opacity: 0.6; }
   .cp-invitee-tag span:hover { opacity: 1; }
 
+  .vis-btn {
+    flex: 1; padding: 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 13px; color: var(--muted); font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all .15s;
+  }
+  .vis-btn.active {
+    background: rgba(232,213,163,0.1); border-color: var(--accent); color: var(--accent);
+  }
+
   .cp-submit {
     width: 100%;
     padding: 14px;
@@ -1254,7 +1263,10 @@
       <div id="plan-active" style="display:none;">
         <div style="padding:24px 28px 0; display:flex; align-items:center; justify-content:space-between;">
           <div>
-            <div class="pg-title" id="active-plan-title">Tonight's Plan</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="pg-title" id="active-plan-title">Tonight's Plan</div>
+              <span id="plan-vis-badge" style="font-size:10px;padding:3px 8px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);"></span>
+            </div>
             <div class="pg-sub" id="active-plan-sub"></div>
           </div>
           <div style="display:flex; gap:8px;">
@@ -1284,88 +1296,45 @@
       </div>
     </div>
 
-    <!-- ── MEET ── -->
+    <!-- ── FRIENDS ── -->
     <div id="page-meet" class="page">
-      <div style="padding:24px 16px 0;">
-        <div class="pg-title">Friends</div>
-        <div class="pg-sub" style="margin-bottom:20px;">What your crew is doing tonight</div>
-
-        <!-- Add friend -->
-        <div style="display:flex;gap:8px;margin-bottom:20px;">
-          <input type="email" id="friend-input" placeholder="Add by email…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;" />
-          <button onclick="addFriend()" style="padding:12px 18px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Add</button>
+      <div style="padding:24px 16px 12px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div class="pg-title">Friends</div>
+          <div class="pg-sub">What your crew is doing tonight</div>
         </div>
+        <button onclick="openAddFriend()" style="padding:9px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;">+ Add</button>
       </div>
 
-      <!-- Friend feed -->
       <div style="padding:0 16px 100px;" id="friends-feed">
-
-        <!-- Friends with plans tonight (demo data until real friends added) -->
-        <div class="pcard" style="margin-bottom:10px;" id="friends-list-card">
-          <div class="pcard-label">Out tonight</div>
-          <div id="friends-out-list">
-            <div class="friend-plan-row" onclick="viewFriendPlan('Marcus','Fabric night','Fabric → XOYO → ECC','10pm')">
-              <div class="friend-row-l">
-                <div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4);width:40px;height:40px;font-size:13px;">MA</div>
-                <div>
-                  <div style="font-size:14px;font-weight:500;">Marcus A</div>
-                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Fabric night · starts 10pm</div>
-                  <div style="font-size:12px;color:var(--accent);margin-top:3px;">Fabric → XOYO → ECC</div>
-                </div>
-              </div>
-              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Tonight</div>
-            </div>
-            <div class="friend-plan-row" onclick="viewFriendPlan('Priya','Jazz &amp; cocktails','Ronnie Scott's → Sky Garden','8pm')">
-              <div class="friend-row-l">
-                <div class="cava" style="background:linear-gradient(135deg,#c4a3e8,#a882d4);width:40px;height:40px;font-size:13px;">PM</div>
-                <div>
-                  <div style="font-size:14px;font-weight:500;">Priya M</div>
-                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Jazz &amp; cocktails · starts 8pm</div>
-                  <div style="font-size:12px;color:var(--accent);margin-top:3px;">Ronnie Scott's → Sky Garden</div>
-                </div>
-              </div>
-              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Tonight</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- No plan tonight -->
-        <div class="pcard" style="margin-bottom:10px;">
-          <div class="pcard-label">No plans yet</div>
-          <div class="friend-row-l" style="padding:6px 0;">
-            <div class="cava" style="background:linear-gradient(135deg,#e8c4a3,#d4a882);width:40px;height:40px;font-size:13px;">TK</div>
-            <div>
-              <div style="font-size:14px;font-weight:500;">Tara K</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;">Nothing planned yet</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Your plan visibility -->
         <div class="pcard">
-          <div class="pcard-label">Your plan</div>
-          <div id="friends-my-plan-status" style="font-size:13px;color:var(--muted);line-height:1.6;">You haven't created a plan yet tonight. Friends can see your plan once you create one.</div>
-          <div id="friends-my-plan-card" style="display:none;">
-            <div style="font-size:15px;font-weight:500;margin-bottom:4px;" id="fmp-name"></div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="fmp-stops"></div>
-            <button onclick="shareLocation()" style="width:100%;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;">📍 Share my location with crew</button>
-          </div>
-          <button id="friends-create-btn" onclick="openCreatePlan()" style="margin-top:12px;width:100%;padding:11px;background:var(--accent);color:#0a0a0a;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">+ Create tonight's plan</button>
+          <div id="friends-list"></div>
         </div>
-
       </div>
 
-      <!-- Friend plan modal -->
+      <!-- Add friend sheet -->
+      <div id="add-friend-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;display:flex;align-items:flex-end;" onclick="closeAddFriendIfBg(event)">
+        <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;">
+          <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+          <div style="font-size:20px;font-weight:500;margin-bottom:6px;">Add a friend</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Enter their email to follow what they're up to tonight.</div>
+          <input type="email" id="friend-email-input" placeholder="friend@email.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;font-size:16px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px;box-sizing:border-box;" />
+          <button onclick="addFriend()" style="width:100%;padding:14px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Add friend</button>
+        </div>
+      </div>
+
+      <!-- Friend plan detail sheet -->
       <div id="friend-plan-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;display:flex;align-items:flex-end;">
-        <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:70vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s;" id="fpm-sheet">
+        <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:75vh;overflow-y:auto;" id="fpm-sheet">
           <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
           <div style="font-size:20px;font-weight:500;margin-bottom:4px;" id="fpm-name"></div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:20px;" id="fpm-time"></div>
-          <div class="pcard-label" style="margin-bottom:10px;">Their itinerary</div>
-          <div id="fpm-stops" style="font-size:14px;color:var(--text);line-height:2;"></div>
-          <div style="display:flex;gap:8px;margin-top:20px;">
-            <button onclick="joinFriendPlan()" style="flex:1;padding:13px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Join their plan</button>
-            <button onclick="closeFriendPlan()" style="padding:13px 18px;background:none;border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">Close</button>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px;" id="fpm-time"></div>
+          <div style="font-size:12px;margin-bottom:20px;" id="fpm-visibility"></div>
+          <div class="pcard-label" style="margin-bottom:10px;">Itinerary</div>
+          <div id="fpm-stops" style="margin-bottom:20px;"></div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="requestJoinPlan()" style="flex:1;padding:13px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Request to join</button>
+            <button onclick="closeFriendPlan()" style="padding:13px 16px;background:none;border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">Close</button>
           </div>
         </div>
       </div>
@@ -1400,6 +1369,29 @@
         </div>
       </div>
 
+      <div class="cp-field">
+        <label>Visibility</label>
+        <div style="display:flex;gap:8px;">
+          <button class="vis-btn active" id="vis-private" onclick="setVisibility('private')">🔒 Private</button>
+          <button class="vis-btn" id="vis-public" onclick="setVisibility('public')">🌙 Public</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="vis-hint">Only people you invite can see this plan.</div>
+      </div>
+
+      <div class="cp-field">
+        <label>Invite crew <span style="color:var(--muted);font-size:10px;text-transform:none;letter-spacing:0;">optional</span></label>
+        <div style="display:flex;gap:8px;">
+          <input type="email" id="cp-invite-input" placeholder="friend@email.com" style="flex:1;" />
+          <button onclick="cpAddInvite()" style="padding:0 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;">Add</button>
+        </div>
+        <div id="cp-invitees-list" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button id="cp-priv-btn" onclick="setCPVisibility('private')" style="flex:1;padding:11px;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;font-size:13px;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;">🔒 Private</button>
+        <button id="cp-pub-btn" onclick="setCPVisibility('public')" style="flex:1;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">🌙 Public</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="cp-vis-hint">Only people you invite can see this plan.</div>
       <button class="cp-submit" onclick="submitPlan()">Let's go →</button>
     </div>
   </div>
@@ -1456,7 +1448,7 @@
   window.addEventListener('load', async () => {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
-      showApp(session.user);
+      currentUser = session.user; showApp(session.user);
     }
   });
 
@@ -1688,11 +1680,51 @@
   var currentPlan = null;
   var invitees = [];
 
+  var cpVisibility = 'private';
+  var cpInvitees = [];
+
+  function setVisibility(v) {
+    cpVisibility = v;
+    document.getElementById('vis-private').classList.toggle('active', v === 'private');
+    document.getElementById('vis-public').classList.toggle('active', v === 'public');
+    document.getElementById('vis-hint').textContent = v === 'private'
+      ? 'Only people you invite can see this plan.'
+      : 'Anyone on Nocturn can see this plan tonight.';
+  }
+
+  function cpAddInvite() {
+    var input = document.getElementById('cp-invite-input');
+    var email = input.value.trim();
+    if (!email || !email.includes('@')) { toast('Enter a valid email'); return; }
+    if (cpInvitees.includes(email)) { toast('Already added'); return; }
+    cpInvitees.push(email);
+    input.value = '';
+    renderCpInvitees();
+  }
+
+  function cpRemoveInvite(email) {
+    cpInvitees = cpInvitees.filter(function(e){ return e !== email; });
+    renderCpInvitees();
+  }
+
+  function renderCpInvitees() {
+    var list = document.getElementById('cp-invitees-list');
+    list.innerHTML = cpInvitees.map(function(e){
+      return '<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px 4px 12px;font-size:12px;">'
+        + e + '<button onclick="cpRemoveInvite(\'' + e + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;line-height:1;">×</button></div>';
+    }).join('');
+  }
+
   function openCreatePlan() {
     var today = new Date().toISOString().split('T')[0];
     document.getElementById('cp-date').value = today;
     document.getElementById('cp-start-time').value = '';
     document.getElementById('cp-name').value = '';
+    cpInvitees = [];
+    cpVisibility = 'private';
+    setVisibility('private');
+    document.getElementById('cp-invitees-list').innerHTML = '';
+    document.getElementById('cp-invite-input').value = '';
     var hint = document.getElementById('cp-venue-hint');
     if (hint) {
       if (pendingVenue) {
@@ -1781,7 +1813,8 @@
       invitees: invitees,
       owner_id: user.id,
       owner_name: userName,
-      start_time: startTime
+      start_time: startTime,
+      is_public: cpVisibility === 'public'
     }).select().single();
 
     btn.disabled = false;
@@ -1815,6 +1848,8 @@
     document.getElementById('plan-active').style.display = 'block';
 
     document.getElementById('active-plan-title').textContent = plan.name;
+    var badge = document.getElementById('plan-vis-badge');
+    if (badge) badge.textContent = plan.is_public ? '🌙 Public' : '🔒 Private';
     var dateStr = plan.date ? new Date(plan.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }) : '';
     var timeStr = plan.start_time ? ' · from ' + formatTime(plan.start_time) : '';
     document.getElementById('active-plan-sub').textContent = dateStr + timeStr + (plan.invitees && plan.invitees.length ? ' · ' + (plan.invitees.length + 1) + ' invited' : '');
