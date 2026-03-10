@@ -103,9 +103,7 @@
     border: 1px solid var(--border);
   }
 
-  .auth-field {
-    margin-bottom: 14px;
-  }
+  .auth-field { margin-bottom: 14px; }
 
   .auth-field label {
     display: block;
@@ -235,7 +233,6 @@
     position: relative;
   }
 
-  /* Sign out dropdown */
   .avatar-menu {
     position: absolute;
     top: calc(100% + 8px);
@@ -651,7 +648,45 @@
 
   .tl { display: flex; flex-direction: column; }
 
-  .tl-row { display: flex; gap: 14px; }
+  /* ── TIMELINE ROW with drag support ── */
+  .tl-row {
+    display: flex;
+    gap: 14px;
+    transition: opacity 0.15s, transform 0.15s;
+    position: relative;
+  }
+  .tl-row.dragging { opacity: 0.3; }
+  .tl-row.drag-over-top::before {
+    content: '';
+    position: absolute;
+    top: -3px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .tl-row.drag-over-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* drag handle */
+  .tl-drag-handle {
+    cursor: grab;
+    color: var(--muted);
+    font-size: 13px;
+    opacity: 0;
+    flex-shrink: 0;
+    user-select: none;
+    align-self: flex-start;
+    padding-top: 3px;
+    transition: opacity .15s;
+  }
+  .tl-drag-handle:active { cursor: grabbing; }
+  .tl-row:hover .tl-drag-handle { opacity: 0.5; }
 
   .tl-spine {
     display: flex; flex-direction: column; align-items: center;
@@ -659,10 +694,8 @@
   }
   .tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
   .tl-bar { width: 1px; flex: 1; background: var(--border); min-height: 16px; margin-top: 4px; }
-  .tl-row:last-child .tl-bar { display: none; }
 
   .tl-body { flex: 1; padding-bottom: 18px; display: flex; flex-direction: column; }
-  .tl-row:last-child .tl-body { padding-bottom: 0; }
   .tl-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
   .tl-t {
     font-size: 12px; color: var(--accent); font-weight: 500;
@@ -726,17 +759,6 @@
     outline: none;
   }
   .tl-edit-time:focus { border-color: var(--accent); }
-  .tl-edit-name {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 10px;
-    font-size: 12px; color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-  }
-  .tl-edit-name:focus { border-color: var(--accent); }
   .tl-save-btn {
     padding: 7px 14px;
     background: var(--accent);
@@ -748,6 +770,87 @@
     white-space: nowrap;
   }
 
+  /* ── INSERT STOP between rows ── */
+  .tl-insert-zone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 26px;
+    margin: 1px 0;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .tl-insert-zone:hover { opacity: 1; }
+  .tl-insert-zone.open { opacity: 1; }
+  .tl-insert-divider { flex: 1; height: 1px; background: rgba(255,255,255,0.05); }
+  .tl-insert-btn {
+    padding: 2px 12px;
+    border: 1px dashed rgba(232,213,163,0.25);
+    border-radius: 20px;
+    background: none;
+    color: rgba(232,213,163,0.35);
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .15s;
+    line-height: 20px;
+  }
+  .tl-insert-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* inline insert form */
+  .tl-insert-form {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(232,213,163,0.04);
+    border: 1px solid rgba(232,213,163,0.18);
+    border-radius: 12px;
+    margin: 4px 0 8px;
+  }
+  .tl-insert-form.open { display: flex; }
+  .tl-insert-form input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 11px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .tl-insert-form input:focus { border-color: var(--accent); }
+  .tl-insert-form-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tl-insert-time {
+    width: 100px;
+    flex-shrink: 0;
+  }
+  .tl-insert-name { flex: 1; min-width: 140px; }
+  .tl-insert-confirm {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tl-insert-cancel {
+    padding: 8px 10px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+  }
+
+  /* Add at end */
   .add-btn {
     display: flex; align-items: center; gap: 8px;
     font-size: 13px; color: var(--muted);
@@ -813,16 +916,6 @@
   .friend-row:last-child { border-bottom: none; }
   .friend-row:active { opacity: .6; }
   .friend-row-l { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-
-  .crew-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
-  .crew-row:last-child { border-bottom:none; }
-  .crew-l { display:flex; align-items:center; gap:12px; }
-  .cava { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#0a0a0a; flex-shrink:0; }
-  .cn { font-size:14px; font-weight:500; }
-  .cs { font-size:12px; color:var(--muted); margin-top:1px; }
-  .badge { font-size:11px; font-weight:500; padding:4px 10px; border-radius:20px; }
-  .b-in { background:rgba(125,186,138,0.15); color:var(--green); }
-  .b-mb { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
 
   /* ════════════ PAGE HEADERS ════════════ */
   .pg-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 4px; }
@@ -949,97 +1042,6 @@
   }
   .cp-field input:focus, .cp-field textarea:focus { border-color: var(--accent); }
 
-  .cp-stops { margin-bottom: 16px; }
-  .cp-stop-row {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 10px;
-  }
-  .cp-stop-time {
-    width: 80px; flex-shrink: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 10px;
-    font-size: 13px; color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .cp-stop-time:focus { border-color: var(--accent); }
-  .cp-stop-name {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 14px;
-    font-size: 13px; color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .cp-stop-name:focus { border-color: var(--accent); }
-  .cp-stop-del {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: none; border: 1px solid var(--border);
-    color: var(--muted); font-size: 16px;
-    cursor: pointer; display: flex;
-    align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all .2s;
-  }
-  .cp-stop-del:hover { border-color: var(--red); color: var(--red); }
-
-  .cp-add-stop {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; color: var(--muted);
-    cursor: pointer; padding: 6px 0;
-    border: none; background: none;
-    font-family: 'DM Sans', sans-serif;
-    transition: color .2s;
-  }
-  .cp-add-stop:hover { color: var(--accent); }
-
-  .cp-invite-row {
-    display: flex; gap: 8px;
-  }
-  .cp-invite-input {
-    flex: 1;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 14px;
-    font-size: 14px; color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .cp-invite-input:focus { border-color: var(--accent); }
-  .cp-invite-btn {
-    padding: 11px 16px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--accent);
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all .2s;
-  }
-  .cp-invite-btn:hover { border-color: var(--accent); }
-
-  .cp-invitees { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; min-height: 0; }
-  .cp-invitee-tag {
-    display: flex; align-items: center; gap: 6px;
-    padding: 5px 12px;
-    background: rgba(232,213,163,0.1);
-    border: 1px solid rgba(232,213,163,0.2);
-    border-radius: 20px;
-    font-size: 12px; color: var(--accent);
-  }
-  .cp-invitee-tag span { cursor: pointer; opacity: 0.6; }
-  .cp-invitee-tag span:hover { opacity: 1; }
-
   .vis-btn {
     flex: 1; padding: 10px; background: var(--surface2); border: 1px solid var(--border);
     border-radius: 10px; font-size: 13px; color: var(--muted); font-family: 'DM Sans', sans-serif;
@@ -1113,8 +1115,6 @@
       <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
       <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
     </div>
-
-    <!-- Login form -->
     <div id="form-login">
       <div class="auth-field">
         <label>Email</label>
@@ -1126,8 +1126,6 @@
       </div>
       <button class="auth-btn" id="login-btn" onclick="handleLogin()">Sign in</button>
     </div>
-
-    <!-- Signup form -->
     <div id="form-signup" style="display:none;">
       <div class="auth-field">
         <label>Your name</label>
@@ -1143,7 +1141,6 @@
       </div>
       <button class="auth-btn" id="signup-btn" onclick="handleSignup()">Create account</button>
     </div>
-
     <div class="auth-msg" id="auth-msg"></div>
   </div>
 </div>
@@ -1151,7 +1148,6 @@
 <!-- ── MAIN APP ── -->
 <div class="shell" id="app" style="display:none;">
 
-  <!-- TOP BAR -->
   <header class="topbar">
     <div class="logo" id="topbar-logo">Nocturn</div>
     <button class="back-btn" id="back-btn" onclick="goBack()">
@@ -1169,7 +1165,6 @@
     </div>
   </header>
 
-  <!-- PAGES -->
   <div class="content">
 
     <!-- ── MAP ── -->
@@ -1252,14 +1247,12 @@
 
     <!-- ── PLAN ── -->
     <div id="page-plan" class="page">
-      <!-- Empty state -->
       <div class="plan-empty" id="plan-empty">
         <div class="plan-empty-icon">🌙</div>
         <div class="plan-empty-title">No plan yet tonight</div>
         <div class="plan-empty-sub">Name your night, then browse Discover<br>to add stops and invite your crew.</div>
         <button class="plan-empty-btn" onclick="openCreatePlan()">+ Create a plan</button>
       </div>
-      <!-- Active plan -->
       <div id="plan-active" style="display:none;">
         <div style="padding:24px 28px 0; display:flex; align-items:center; justify-content:space-between;">
           <div>
@@ -1305,14 +1298,11 @@
         </div>
         <button onclick="openAddFriend()" style="padding:9px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;">+ Add</button>
       </div>
-
       <div style="padding:0 16px 100px;" id="friends-feed">
         <div class="pcard">
           <div id="friends-list"></div>
         </div>
       </div>
-
-      <!-- Add friend sheet -->
       <div id="add-friend-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;display:flex;align-items:flex-end;" onclick="closeAddFriendIfBg(event)">
         <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;">
           <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
@@ -1322,8 +1312,6 @@
           <button onclick="addFriend()" style="width:100%;padding:14px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Add friend</button>
         </div>
       </div>
-
-      <!-- Friend plan detail sheet -->
       <div id="friend-plan-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;display:flex;align-items:flex-end;">
         <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:75vh;overflow-y:auto;" id="fpm-sheet">
           <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
@@ -1342,7 +1330,6 @@
 
   </div>
 
-  <!-- FAB -->
   <button class="fab" id="fab-btn" onclick="openCreatePlan()" title="Create plan">+</button>
 
   <!-- CREATE PLAN SHEET -->
@@ -1352,12 +1339,10 @@
       <div class="cp-title">Create a plan</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Give your night a name and a date. You can add stops from Discover and invite your crew after.</p>
       <div id="cp-venue-hint" style="display:none;font-size:13px;color:var(--green);background:rgba(125,186,138,0.1);border:1px solid rgba(125,186,138,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;">📍 </div>
-
       <div class="cp-field">
         <label>Plan name</label>
         <input type="text" id="cp-name" placeholder="e.g. Friday Night Out" />
       </div>
-
       <div style="display:flex; gap:10px;">
         <div class="cp-field" style="flex:1;">
           <label>Date</label>
@@ -1368,7 +1353,6 @@
           <input type="time" id="cp-start-time" />
         </div>
       </div>
-
       <div class="cp-field">
         <label>Visibility</label>
         <div style="display:flex;gap:8px;">
@@ -1377,26 +1361,18 @@
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="vis-hint">Only people you invite can see this plan.</div>
       </div>
-
       <div class="cp-field">
         <label>Invite crew <span style="color:var(--muted);font-size:10px;text-transform:none;letter-spacing:0;">optional</span></label>
         <div style="display:flex;gap:8px;">
-          <input type="email" id="cp-invite-input" placeholder="friend@email.com" style="flex:1;" />
+          <input type="email" id="cp-invite-input" placeholder="friend@email.com" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;" />
           <button onclick="cpAddInvite()" style="padding:0 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;">Add</button>
         </div>
         <div id="cp-invitees-list" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;"></div>
       </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button id="cp-priv-btn" onclick="setCPVisibility('private')" style="flex:1;padding:11px;background:var(--surface2);border:2px solid var(--accent);border-radius:12px;font-size:13px;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;">🔒 Private</button>
-        <button id="cp-pub-btn" onclick="setCPVisibility('public')" style="flex:1;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">🌙 Public</button>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="cp-vis-hint">Only people you invite can see this plan.</div>
       <button class="cp-submit" onclick="submitPlan()">Let's go →</button>
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="showPage('page-map',this)"><span class="nav-icon">🗺</span>Map</button>
     <button class="nav-btn" onclick="showPage('page-discover',this)"><span class="nav-icon">✦</span>Discover</button>
@@ -1435,24 +1411,19 @@
 <div class="toast" id="toastEl"></div>
 
 <script>
-  // ─────────────────────────────────────────
-  // REPLACE THESE TWO VALUES WITH YOUR OWN
   const SUPABASE_URL = "https://zbjhplpjhrhpibimpcgc.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_lrYkhsPqP3JSwclvS6K9EQ_uk7BF6Qa";
-  // ─────────────────────────────────────────
 
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ── On load: check if already signed in ──
+  var currentUser = null;
+
   window.addEventListener('load', async () => {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      currentUser = session.user; showApp(session.user);
-    }
+    if (session) { currentUser = session.user; showApp(session.user); }
   });
 
-  // ── Auth tab switch ──
   function switchTab(tab) {
     document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
@@ -1462,96 +1433,50 @@
   }
 
   function setAuthMsg(msg, type) {
-    const el = document.getElementById('auth-msg');
+    var el = document.getElementById('auth-msg');
     el.textContent = msg;
     el.className = 'auth-msg' + (type ? ' ' + type : '');
   }
 
-  // ── Sign up ──
   async function handleSignup() {
-    const name = document.getElementById('signup-name').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
-
-    if (!name || !email || !password) {
-      setAuthMsg('Please fill in all fields.', 'error'); return;
-    }
-    if (password.length < 6) {
-      setAuthMsg('Password must be at least 6 characters.', 'error'); return;
-    }
-
-    const btn = document.getElementById('signup-btn');
-    btn.disabled = true;
-    btn.textContent = 'Creating account…';
+    var name = document.getElementById('signup-name').value.trim();
+    var email = document.getElementById('signup-email').value.trim();
+    var password = document.getElementById('signup-password').value;
+    if (!name || !email || !password) { setAuthMsg('Please fill in all fields.', 'error'); return; }
+    if (password.length < 6) { setAuthMsg('Password must be at least 6 characters.', 'error'); return; }
+    var btn = document.getElementById('signup-btn');
+    btn.disabled = true; btn.textContent = 'Creating account…';
     setAuthMsg('', '');
-
-    const { data, error } = await sb.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } }
-    });
-
-    btn.disabled = false;
-    btn.textContent = 'Create account';
-
-    if (error) {
-      setAuthMsg(error.message, 'error');
-    } else if (data.user && !data.session) {
-      setAuthMsg('Check your email to confirm your account, then sign in.', 'success');
-      switchTab('login');
-    } else if (data.session) {
-      showApp(data.user);
-    }
+    var { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+    btn.disabled = false; btn.textContent = 'Create account';
+    if (error) { setAuthMsg(error.message, 'error'); }
+    else if (data.user && !data.session) { setAuthMsg('Check your email to confirm your account, then sign in.', 'success'); switchTab('login'); }
+    else if (data.session) { showApp(data.user); }
   }
 
-  // ── Sign in ──
   async function handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-
-    if (!email || !password) {
-      setAuthMsg('Please enter your email and password.', 'error'); return;
-    }
-
-    const btn = document.getElementById('login-btn');
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
+    var email = document.getElementById('login-email').value.trim();
+    var password = document.getElementById('login-password').value;
+    if (!email || !password) { setAuthMsg('Please enter your email and password.', 'error'); return; }
+    var btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Signing in…';
     setAuthMsg('', '');
-
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
-
-    if (error) {
-      setAuthMsg(error.message, 'error');
-    } else {
-      showApp(data.user);
-    }
+    var { data, error } = await sb.auth.signInWithPassword({ email, password });
+    btn.disabled = false; btn.textContent = 'Sign in';
+    if (error) { setAuthMsg(error.message, 'error'); } else { showApp(data.user); }
   }
 
-  // ── Show main app ──
   function showApp(user) {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').style.display = 'flex';
-
-    // Check for plan in URL
     checkPlanInURL();
-
-    // Set avatar initials + email
-    const email = user.email || '';
-    const name = user.user_metadata?.full_name || email;
-    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-
+    var email = user.email || '';
+    var name = user.user_metadata?.full_name || email;
+    var initials = name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
     document.getElementById('avatar-initials').textContent = initials;
     document.getElementById('avatar-email').textContent = email;
-
-    // Update Plan page "You" row
-    document.getElementById('plan-you-avatar').textContent = initials;
-    document.getElementById('plan-you-name').textContent = name.split(' ')[0] || 'You';
   }
 
-  // ── Sign out ──
   async function handleSignOut() {
     await sb.auth.signOut();
     document.getElementById('app').style.display = 'none';
@@ -1560,18 +1485,11 @@
     setAuthMsg('', '');
   }
 
-  // ── Avatar menu toggle ──
-  function toggleAvatarMenu() {
-    document.getElementById('avatar-menu').classList.toggle('open');
-  }
+  function toggleAvatarMenu() { document.getElementById('avatar-menu').classList.toggle('open'); }
   document.addEventListener('click', function(e) {
-    if (!document.getElementById('user-avatar').contains(e.target)) {
+    if (!document.getElementById('user-avatar').contains(e.target))
       document.getElementById('avatar-menu').classList.remove('open');
-    }
   });
-
-  // ── App navigation ──
-  var curName = '';
 
   var pageHistory = ['page-map'];
 
@@ -1587,7 +1505,7 @@
   }
 
   function updateBackBtn(pageId) {
-    var mainPages = ['page-map', 'page-discover', 'page-plan', 'page-meet'];
+    var mainPages = ['page-map','page-discover','page-plan','page-meet'];
     var isMain = mainPages.indexOf(pageId) !== -1;
     document.getElementById('topbar-logo').style.display = isMain ? 'block' : 'none';
     document.getElementById('back-btn').classList.toggle('visible', !isMain);
@@ -1601,9 +1519,7 @@
       var pageOrder = ['page-map','page-discover','page-plan','page-meet'];
       var idx = pageOrder.indexOf(prev);
       showPage(prev, idx >= 0 ? navBtns[idx] : null);
-    } else {
-      showPage('page-map', document.querySelector('.nav-btn'));
-    }
+    } else { showPage('page-map', document.querySelector('.nav-btn')); }
   }
 
   function fp(btn) {
@@ -1612,10 +1528,10 @@
   }
 
   var curAddress = '';
+  var curName = '';
 
   function modal(name, venue, hours, price, about, address) {
-    curName = name;
-    curAddress = address || venue || '';
+    curName = name; curAddress = address || venue || '';
     document.getElementById('m-name').textContent = name;
     document.getElementById('m-venue').textContent = venue;
     document.getElementById('m-hours').textContent = hours;
@@ -1626,28 +1542,15 @@
     document.getElementById('overlay').classList.add('open');
   }
 
-  function closeModal() {
-    document.getElementById('overlay').classList.remove('open');
-  }
-
-  function closeOverlay(e) {
-    if (e.target.id === 'overlay') closeModal();
-  }
+  function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+  function closeOverlay(e) { if (e.target.id === 'overlay') closeModal(); }
 
   var pendingVenue = null;
 
   function addPlan() {
     if (!currentPlan) {
-      // Save venue so we can add it after plan is created
-      pendingVenue = {
-        place: curName,
-        address: curAddress,
-        time: document.getElementById('m-start-time').value || '',
-        end_time: document.getElementById('m-end-time').value || ''
-      };
-      closeModal();
-      openCreatePlan();
-      return;
+      pendingVenue = { place: curName, address: curAddress, time: document.getElementById('m-start-time').value || '', end_time: document.getElementById('m-end-time').value || '' };
+      closeModal(); openCreatePlan(); return;
     }
     var startTime = document.getElementById('m-start-time').value || '';
     var endTime = document.getElementById('m-end-time').value || '';
@@ -1676,10 +1579,7 @@
     setTimeout(function(){ el.classList.remove('show'); }, 2600);
   }
 
-  // ── Create Plan ──
   var currentPlan = null;
-  var invitees = [];
-
   var cpVisibility = 'private';
   var cpInvitees = [];
 
@@ -1687,9 +1587,7 @@
     cpVisibility = v;
     document.getElementById('vis-private').classList.toggle('active', v === 'private');
     document.getElementById('vis-public').classList.toggle('active', v === 'public');
-    document.getElementById('vis-hint').textContent = v === 'private'
-      ? 'Only people you invite can see this plan.'
-      : 'Anyone on Nocturn can see this plan tonight.';
+    document.getElementById('vis-hint').textContent = v === 'private' ? 'Only people you invite can see this plan.' : 'Anyone on Nocturn can see this plan tonight.';
   }
 
   function cpAddInvite() {
@@ -1697,14 +1595,11 @@
     var email = input.value.trim();
     if (!email || !email.includes('@')) { toast('Enter a valid email'); return; }
     if (cpInvitees.includes(email)) { toast('Already added'); return; }
-    cpInvitees.push(email);
-    input.value = '';
-    renderCpInvitees();
+    cpInvitees.push(email); input.value = ''; renderCpInvitees();
   }
 
   function cpRemoveInvite(email) {
-    cpInvitees = cpInvitees.filter(function(e){ return e !== email; });
-    renderCpInvitees();
+    cpInvitees = cpInvitees.filter(function(e){ return e !== email; }); renderCpInvitees();
   }
 
   function renderCpInvitees() {
@@ -1720,19 +1615,13 @@
     document.getElementById('cp-date').value = today;
     document.getElementById('cp-start-time').value = '';
     document.getElementById('cp-name').value = '';
-    cpInvitees = [];
-    cpVisibility = 'private';
-    setVisibility('private');
+    cpInvitees = []; cpVisibility = 'private'; setVisibility('private');
     document.getElementById('cp-invitees-list').innerHTML = '';
     document.getElementById('cp-invite-input').value = '';
     var hint = document.getElementById('cp-venue-hint');
     if (hint) {
-      if (pendingVenue) {
-        hint.textContent = pendingVenue.place + ' will be added to your plan once created.';
-        hint.style.display = 'block';
-      } else {
-        hint.style.display = 'none';
-      }
+      if (pendingVenue) { hint.textContent = pendingVenue.place + ' will be added to your plan once created.'; hint.style.display = 'block'; }
+      else { hint.style.display = 'none'; }
     }
     document.getElementById('create-plan-overlay').classList.add('open');
   }
@@ -1744,109 +1633,47 @@
     }
   }
 
-  function addStop() {
-    var row = document.createElement('div');
-    row.className = 'cp-stop-row';
-    row.innerHTML = '<input type="time" class="cp-stop-time" /><input type="text" class="cp-stop-name" placeholder="Where are you going?" /><button class="cp-stop-del" onclick="removeStop(this)">×</button>';
-    document.getElementById('cp-stops').appendChild(row);
-  }
-
-  function removeStop(btn) {
-    var rows = document.querySelectorAll('.cp-stop-row');
-    if (rows.length > 1) btn.parentElement.remove();
-    else toast('Need at least one stop');
-  }
-
-  function addInvitee() {
-    var input = document.getElementById('cp-invite-input');
-    var email = input.value.trim();
-    if (!email || !email.includes('@')) { toast('Enter a valid email'); return; }
-    if (invitees.includes(email)) { toast('Already added'); input.value=''; return; }
-    invitees.push(email);
-    renderInvitees();
-    input.value = '';
-  }
-
-  function removeInvitee(email) {
-    invitees = invitees.filter(function(e){ return e !== email; });
-    renderInvitees();
-  }
-
-  function renderInvitees() {
-    var container = document.getElementById('cp-invitees');
-    container.innerHTML = invitees.map(function(e){
-      return '<div class="cp-invitee-tag">' + e + '<span onclick="removeInvitee(\'' + e + '\')">×</span></div>';
-    }).join('');
-  }
-
   async function submitPlan() {
     var name = document.getElementById('cp-name').value.trim();
     var date = document.getElementById('cp-date').value;
-
     if (!name) { toast('Give your plan a name'); return; }
     if (!date) { toast('Pick a date'); return; }
-
-    // Collect stops
-    var stops = [];
-    document.querySelectorAll('.cp-stop-row').forEach(function(row) {
-      var time = row.querySelector('.cp-stop-time').value;
-      var place = row.querySelector('.cp-stop-name').value.trim();
-      if (place) stops.push({ time: time, place: place });
-    });
-
-    // stops are optional - can be added from Discover
-
     var btn = document.querySelector('.cp-submit');
-    btn.disabled = true;
-    btn.textContent = 'Creating…';
-
-    // Get current user
+    btn.disabled = true; btn.textContent = 'Creating…';
     var { data: { user } } = await sb.auth.getUser();
     var userName = user.user_metadata?.full_name || user.email;
-
-    // Save to Supabase
     var startTime = document.getElementById('cp-start-time').value || '';
     var { data, error } = await sb.from('plans').insert({
-      name: name,
-      date: date,
-      stops: stops,
-      invitees: invitees,
-      owner_id: user.id,
-      owner_name: userName,
-      start_time: startTime,
-      is_public: cpVisibility === 'public'
+      name, date, stops: [], invitees: cpInvitees, owner_id: user.id,
+      owner_name: userName, start_time: startTime, is_public: cpVisibility === 'public'
     }).select().single();
-
-    btn.disabled = false;
-    btn.textContent = 'Create plan & invite crew';
-
+    btn.disabled = false; btn.textContent = "Let's go →";
     if (error) {
-      // If table doesn't exist yet, show plan locally
       if (error.code === '42P01') {
-        showPlanLocally({ name, date, stops, invitees, owner_name: userName });
+        showPlanLocally({ name, date, stops: [], invitees: cpInvitees, owner_name: userName });
         addPendingVenueIfAny();
         document.getElementById('create-plan-overlay').classList.remove('open');
-        toast('Plan created! (Set up DB to save permanently)');
+        toast('Plan created!');
         showPage('page-plan', document.querySelector('.nav-btn:nth-child(3)'));
         return;
       }
-      toast('Error: ' + error.message);
-      return;
+      toast('Error: ' + error.message); return;
     }
-
     currentPlan = data;
     showPlanLocally(data);
     addPendingVenueIfAny();
     document.getElementById('create-plan-overlay').classList.remove('open');
-    toast('Plan created! Link copied to clipboard 🎉');
+    toast('Plan created! 🎉');
     copyPlanLink();
     showPage('page-plan', document.querySelector('.nav-btn:nth-child(3)'));
   }
 
+  // ═══════════════════════════════════════════
+  // SHOW PLAN — with drag-to-reorder + insert stop
+  // ═══════════════════════════════════════════
   function showPlanLocally(plan) {
     document.getElementById('plan-empty').style.display = 'none';
     document.getElementById('plan-active').style.display = 'block';
-
     document.getElementById('active-plan-title').textContent = plan.name;
     var badge = document.getElementById('plan-vis-badge');
     if (badge) badge.textContent = plan.is_public ? '🌙 Public' : '🔒 Private';
@@ -1854,48 +1681,24 @@
     var timeStr = plan.start_time ? ' · from ' + formatTime(plan.start_time) : '';
     document.getElementById('active-plan-sub').textContent = dateStr + timeStr + (plan.invitees && plan.invitees.length ? ' · ' + (plan.invitees.length + 1) + ' invited' : '');
 
-    // Build timeline
     var tl = document.getElementById('active-tl');
     tl.innerHTML = '';
     var stops = plan.stops || [];
     var hint = document.getElementById('no-stops-hint');
     if (hint) hint.style.display = stops.length === 0 ? 'block' : 'none';
+
     stops.forEach(function(stop, i) {
-      var timeLabel = stop.time ? formatTime(stop.time) : '';
-      var row = document.createElement('div');
-      row.className = 'tl-row';
-      row.setAttribute('data-idx', i);
-      var endLabel = stop.end_time ? formatTime(stop.end_time) : '';
-      var fullTimeLabel = timeLabel && endLabel ? timeLabel + ' – ' + endLabel : (timeLabel || endLabel);
-      var timeClass = fullTimeLabel ? 'tl-t' : 'tl-t-empty';
-      var timeDisplay = fullTimeLabel ? fullTimeLabel : '+ Add time';
-      var addressHtml = stop.address
-        ? '<a href="https://maps.google.com/?q=' + encodeURIComponent(stop.address) + '" target="_blank" style="font-size:12px;color:var(--muted);text-decoration:none;display:block;margin-top:3px;margin-bottom:2px;" onclick="event.stopPropagation()">📍 ' + stop.address + '</a>'
-        : '';
-      row.innerHTML = '<div class="tl-spine"><div class="tl-dot"></div>' + (i < stops.length-1 ? '<div class="tl-bar"></div>' : '') + '</div>'
-        + '<div class="tl-body">'
-        + '<div class="tl-main">'
-        + '<div class="tl-n" id="tl-n-' + i + '">' + stop.place + '</div>'
-        + '<div class="' + timeClass + '" id="tl-t-' + i + '" onclick="editStop(' + i + ')">' + timeDisplay + '</div>'
-        + '</div>'
-        + addressHtml
-        + '<div class="tl-actions">'
-        + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit time</button>'
-        + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
-        + '</div>'
-        + '<div class="tl-edit-row" id="tl-edit-' + i + '" style="display:none;">'
-        + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
-        + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" />'
-        + '<span style="color:var(--muted);font-size:12px;flex-shrink:0;">to</span>'
-        + '<input type="time" class="tl-edit-time" id="tl-edit-end-' + i + '" value="' + (stop.end_time||'') + '" />'
-        + '</div>'
-        + '<button class="tl-save-btn" onclick="saveStop(' + i + ')">Save</button>'
-        + '</div>'
-        + '</div>';
+      // Insert zone BEFORE first stop
+      if (i === 0) tl.appendChild(makeInsertZone(0));
+
+      var row = makeStopRow(stop, i, stops.length);
       tl.appendChild(row);
+
+      // Insert zone AFTER each stop
+      tl.appendChild(makeInsertZone(i + 1));
     });
 
-    // Build crew
+    // Rebuild crew
     var crew = document.getElementById('crew-list');
     crew.innerHTML = '';
     var initials = getInitials(plan.owner_name || 'You');
@@ -1907,41 +1710,193 @@
     document.getElementById('crew-label').textContent = 'Crew · ' + (1 + (plan.invitees||[]).length) + ' invited';
 
     currentPlan = plan;
+    initDragDrop();
   }
 
-  function formatTime(t) {
-    if (!t) return '';
-    var parts = t.split(':');
-    var h = parseInt(parts[0]);
-    var m = parts[1];
-    var ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return h + ':' + m + ' ' + ampm;
+  function makeStopRow(stop, i, total) {
+    var timeLabel = stop.time ? formatTime(stop.time) : '';
+    var endLabel = stop.end_time ? formatTime(stop.end_time) : '';
+    var fullTimeLabel = timeLabel && endLabel ? timeLabel + ' – ' + endLabel : (timeLabel || endLabel);
+    var timeClass = fullTimeLabel ? 'tl-t' : 'tl-t-empty';
+    var timeDisplay = fullTimeLabel ? fullTimeLabel : '+ Add time';
+    var addressHtml = stop.address
+      ? '<a href="https://maps.google.com/?q=' + encodeURIComponent(stop.address) + '" target="_blank" style="font-size:12px;color:var(--muted);text-decoration:none;display:block;margin-top:3px;margin-bottom:2px;" onclick="event.stopPropagation()">📍 ' + stop.address + '</a>'
+      : '';
+
+    var row = document.createElement('div');
+    row.className = 'tl-row';
+    row.setAttribute('data-idx', i);
+    row.setAttribute('draggable', 'true');
+
+    var isLast = (i === total - 1);
+    var barHtml = !isLast ? '<div class="tl-bar"></div>' : '';
+
+    row.innerHTML =
+      '<div class="tl-drag-handle" title="Drag to reorder">⠿</div>'
+      + '<div class="tl-spine"><div class="tl-dot"></div>' + barHtml + '</div>'
+      + '<div class="tl-body">'
+      + '<div class="tl-main">'
+      + '<div class="tl-n">' + escHtml(stop.place) + '</div>'
+      + '<div class="' + timeClass + '" onclick="editStop(' + i + ')">' + timeDisplay + '</div>'
+      + '</div>'
+      + addressHtml
+      + '<div class="tl-actions">'
+      + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit time</button>'
+      + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
+      + '</div>'
+      + '<div class="tl-edit-row" id="tl-edit-' + i + '">'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+      + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" />'
+      + '<span style="color:var(--muted);font-size:12px;flex-shrink:0;">to</span>'
+      + '<input type="time" class="tl-edit-time" id="tl-edit-end-' + i + '" value="' + (stop.end_time||'') + '" />'
+      + '</div>'
+      + '<button class="tl-save-btn" onclick="saveStop(' + i + ')">Save</button>'
+      + '</div>'
+      + '</div>';
+
+    return row;
   }
 
-  function getInitials(name) {
-    return name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  function makeInsertZone(afterIdx) {
+    // wrapper holds the zone button + the form when open
+    var wrap = document.createElement('div');
+    wrap.setAttribute('data-insert-after', afterIdx);
+
+    var zone = document.createElement('div');
+    zone.className = 'tl-insert-zone';
+    zone.innerHTML =
+      '<div class="tl-insert-divider"></div>'
+      + '<button class="tl-insert-btn" onclick="openInsertForm(' + afterIdx + ', this)">+ add stop</button>'
+      + '<div class="tl-insert-divider"></div>';
+
+    var form = document.createElement('div');
+    form.className = 'tl-insert-form';
+    form.id = 'tl-insert-form-' + afterIdx;
+    form.innerHTML =
+      '<div class="tl-insert-form-row">'
+      + '<input type="time" class="tl-insert-time" id="tl-ins-time-' + afterIdx + '" placeholder="Time" />'
+      + '<input type="text" class="tl-insert-name" id="tl-ins-name-' + afterIdx + '" placeholder="Venue or stop name *" />'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button class="tl-insert-confirm" onclick="confirmInsert(' + afterIdx + ')">Add stop</button>'
+      + '<button class="tl-insert-cancel" onclick="closeInsertForm(' + afterIdx + ')">Cancel</button>'
+      + '</div>';
+
+    wrap.appendChild(zone);
+    wrap.appendChild(form);
+    return wrap;
   }
 
-  function copyPlanLink() {
-    var link = window.location.href.split('?')[0] + (currentPlan && currentPlan.id ? '?plan=' + currentPlan.id : '');
-    navigator.clipboard.writeText(link).then(function(){
-      toast('Link copied ✓');
-    }).catch(function(){
-      toast('Share: ' + window.location.href);
+  function openInsertForm(idx, btn) {
+    // Close any open forms
+    document.querySelectorAll('.tl-insert-form.open').forEach(function(f){ f.classList.remove('open'); });
+    document.querySelectorAll('.tl-insert-zone').forEach(function(z){ z.classList.remove('open'); });
+    var form = document.getElementById('tl-insert-form-' + idx);
+    if (form) {
+      form.classList.add('open');
+      btn.closest('.tl-insert-zone').classList.add('open');
+      setTimeout(function(){ document.getElementById('tl-ins-name-' + idx).focus(); }, 50);
+    }
+  }
+
+  function closeInsertForm(idx) {
+    var form = document.getElementById('tl-insert-form-' + idx);
+    if (form) form.classList.remove('open');
+    document.querySelectorAll('.tl-insert-zone').forEach(function(z){ z.classList.remove('open'); });
+  }
+
+  function confirmInsert(afterIdx) {
+    var nameEl = document.getElementById('tl-ins-name-' + afterIdx);
+    var timeEl = document.getElementById('tl-ins-time-' + afterIdx);
+    var name = nameEl ? nameEl.value.trim() : '';
+    if (!name) { toast('Enter a stop name'); nameEl && nameEl.focus(); return; }
+    var time = timeEl ? timeEl.value : '';
+    var stops = currentPlan.stops || [];
+    stops.splice(afterIdx, 0, { place: name, time: time, end_time: '', address: '' });
+    currentPlan.stops = stops;
+    showPlanLocally(currentPlan);
+    toast(name + ' added ✓');
+  }
+
+  // ── Drag-to-reorder ──
+  var dragSrcIdx = null;
+
+  function initDragDrop() {
+    var rows = document.querySelectorAll('#active-tl .tl-row');
+    rows.forEach(function(row) {
+      row.addEventListener('dragstart', onDragStart);
+      row.addEventListener('dragend', onDragEnd);
+      row.addEventListener('dragover', onDragOver);
+      row.addEventListener('drop', onDrop);
+      row.addEventListener('dragleave', onDragLeave);
     });
   }
 
-  // ── Stop editing ──
+  function onDragStart(e) {
+    dragSrcIdx = parseInt(this.getAttribute('data-idx'));
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragSrcIdx);
+    // Close any open edit/insert forms
+    document.querySelectorAll('.tl-edit-row').forEach(function(el){ el.style.display = 'none'; });
+    document.querySelectorAll('.tl-insert-form.open').forEach(function(f){ f.classList.remove('open'); });
+  }
+
+  function onDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.tl-row').forEach(function(r){
+      r.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    dragSrcIdx = null;
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    var targetIdx = parseInt(this.getAttribute('data-idx'));
+    if (dragSrcIdx === null || targetIdx === dragSrcIdx) return;
+    document.querySelectorAll('.tl-row').forEach(function(r){
+      r.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    var rect = this.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    if (e.clientY < midY) {
+      this.classList.add('drag-over-top');
+    } else {
+      this.classList.add('drag-over-bottom');
+    }
+  }
+
+  function onDragLeave(e) {
+    this.classList.remove('drag-over-top', 'drag-over-bottom');
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    var targetIdx = parseInt(this.getAttribute('data-idx'));
+    if (dragSrcIdx === null || targetIdx === dragSrcIdx) return;
+
+    var rect = this.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    var insertBefore = (e.clientY < midY);
+
+    var stops = currentPlan.stops || [];
+    var moved = stops.splice(dragSrcIdx, 1)[0];
+    var newIdx = insertBefore ? targetIdx : targetIdx + 1;
+    // Adjust for the removed element
+    if (dragSrcIdx < targetIdx) newIdx = insertBefore ? targetIdx - 1 : targetIdx;
+    stops.splice(newIdx, 0, moved);
+    currentPlan.stops = stops;
+    showPlanLocally(currentPlan);
+    toast('Stop moved ✓');
+  }
+
   function editStop(i) {
     var editRow = document.getElementById('tl-edit-' + i);
-    var isOpen = editRow.style.display === 'flex' || editRow.style.display === 'block';
-    // close all edit rows by class
+    if (!editRow) return;
+    var isOpen = editRow.style.display === 'flex';
     document.querySelectorAll('.tl-edit-row').forEach(function(el){ el.style.display = 'none'; });
-    if (!isOpen) {
-      editRow.style.display = 'flex';
-      setTimeout(function(){ document.getElementById('tl-edit-name-' + i).focus(); }, 50);
-    }
+    if (!isOpen) editRow.style.display = 'flex';
   }
 
   function saveStop(i) {
@@ -1959,118 +1914,76 @@
     toast('Stop removed');
   }
 
-  // ── Delete plan ──
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatTime(t) {
+    if (!t) return '';
+    var parts = t.split(':');
+    var h = parseInt(parts[0]); var m = parts[1];
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + ampm;
+  }
+
+  function getInitials(name) {
+    return name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  }
+
+  function copyPlanLink() {
+    var link = window.location.href.split('?')[0] + (currentPlan && currentPlan.id ? '?plan=' + currentPlan.id : '');
+    navigator.clipboard.writeText(link).then(function(){ toast('Link copied ✓'); }).catch(function(){ toast('Share: ' + window.location.href); });
+  }
+
   function confirmDeletePlan() {
     if (!currentPlan) return;
-    if (confirm('Delete "' + currentPlan.name + '"? This cannot be undone.')) {
-      deletePlan();
-    }
+    if (confirm('Delete "' + currentPlan.name + '"? This cannot be undone.')) deletePlan();
   }
 
   async function deletePlan() {
     if (!currentPlan) return;
-    if (currentPlan.id) {
-      await sb.from('plans').delete().eq('id', currentPlan.id);
-    }
+    if (currentPlan.id) await sb.from('plans').delete().eq('id', currentPlan.id);
     currentPlan = null;
     document.getElementById('plan-active').style.display = 'none';
     document.getElementById('plan-empty').style.display = 'flex';
     toast('Plan deleted');
-    refreshFriendsPage();
   }
 
-  // ── Meet Up page ──
-  function refreshMeetPage() {
-    if (!currentPlan) {
-      document.getElementById('meet-empty').style.display = 'flex';
-      document.getElementById('meet-active').style.display = 'none';
-      return;
-    }
-    document.getElementById('meet-empty').style.display = 'none';
-    document.getElementById('meet-active').style.display = 'block';
+  function refreshFriendsPage() {
+    var list = document.getElementById('friends-list');
+    if (!list) return;
+    list.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:12px 0;">No friends added yet. Use + Add to find people.</div>';
+  }
 
-    document.getElementById('meet-plan-name').textContent = currentPlan.name || 'Tonight';
-    var dateStr = currentPlan.date ? new Date(currentPlan.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }) : '';
-    document.getElementById('meet-plan-date').textContent = dateStr;
+  function openAddFriend() {
+    var overlay = document.getElementById('add-friend-overlay');
+    overlay.style.opacity = '1'; overlay.style.pointerEvents = 'all';
+  }
 
-    // Crew list
-    var crew = document.getElementById('meet-crew-list');
-    crew.innerHTML = '';
-    var colors = ['linear-gradient(135deg,#c4a882,#e8d5a3)','linear-gradient(135deg,#a3c4e8,#82b0d4)','linear-gradient(135deg,#e8a3c4,#d482b0)','linear-gradient(135deg,#a3e8c4,#82d4a3)','linear-gradient(135deg,#c4a3e8,#a882d4)'];
-    var ownerInit = getInitials(currentPlan.owner_name || 'You');
-    crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:' + colors[0] + '">' + ownerInit + '</div><div><div class="cn">' + (currentPlan.owner_name || 'You') + '</div><div class="cs">Organiser · In</div></div></div><span class="badge b-in">✓ In</span></div>';
-    (currentPlan.invitees || []).forEach(function(email, i) {
-      var ini = email[0].toUpperCase();
-      crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:' + colors[(i+1)%colors.length] + '">' + ini + '</div><div><div class="cn">' + email + '</div><div class="cs">Invited</div></div></div><span class="badge b-mb">Pending</span></div>';
-    });
-    if ((currentPlan.invitees||[]).length === 0) {
-      crew.innerHTML += '<div style="font-size:13px;color:var(--muted);padding:8px 0;">No crew invited yet — share your plan link to invite people.</div>';
-    }
-
-    // Vote options from stops
-    var voteEl = document.getElementById('vote-options');
-    var stops = currentPlan.stops || [];
-    if (stops.length === 0) {
-      voteEl.innerHTML = '<div style="font-size:13px;color:var(--muted);">Add stops to your plan first \u2014 they\'ll appear here as vote options.</div>';
-    } else {
-      voteEl.innerHTML = '';
-      stops.forEach(function(stop, i) {
-        var div = document.createElement('div');
-        div.className = 'vote-option';
-        div.id = 'vote-' + i;
-        div.innerHTML = '<div><div class="vote-option-name">' + stop.place + '</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="vote-option-count" id="vote-count-' + i + '">0 votes</span><span class="vote-thumb">👍</span></div>';
-        div.onclick = function() { castVote(i, stop.place); };
-        voteEl.appendChild(div);
-      });
+  function closeAddFriendIfBg(e) {
+    if (e.target === document.getElementById('add-friend-overlay')) {
+      var overlay = document.getElementById('add-friend-overlay');
+      overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none';
     }
   }
 
-  var myVote = null;
-  var voteCounts = {};
-
-  function castVote(i, name) {
-    // Remove previous vote
-    if (myVote !== null) {
-      document.getElementById('vote-' + myVote).classList.remove('voted');
-      voteCounts[myVote] = Math.max(0, (voteCounts[myVote]||0) - 1);
-      document.getElementById('vote-count-' + myVote).textContent = voteCounts[myVote] + ' votes';
-    }
-    myVote = i;
-    voteCounts[i] = (voteCounts[i]||0) + 1;
-    document.getElementById('vote-' + i).classList.add('voted');
-    document.getElementById('vote-count-' + i).textContent = voteCounts[i] + ' vote' + (voteCounts[i]===1?'':'s');
-    var result = document.getElementById('vote-result');
-    result.style.display = 'block';
-    result.textContent = '👍 You voted for ' + name + ' — link your crew so they can vote too!';
+  function addFriend() {
+    var email = document.getElementById('friend-email-input').value.trim();
+    if (!email) { toast('Enter an email'); return; }
+    toast('Friend request sent to ' + email + ' ✓');
+    document.getElementById('friend-email-input').value = '';
+    var overlay = document.getElementById('add-friend-overlay');
+    overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none';
   }
 
-  function shareLocation() {
-    if (!navigator.geolocation) {
-      toast('Location not supported on this device');
-      return;
-    }
-    var btn = document.getElementById('share-loc-btn');
-    btn.textContent = 'Getting location…';
-    btn.disabled = true;
-    navigator.geolocation.getCurrentPosition(function(pos) {
-      var lat = pos.coords.latitude.toFixed(5);
-      var lng = pos.coords.longitude.toFixed(5);
-      var mapsLink = 'https://maps.google.com/?q=' + lat + ',' + lng;
-      navigator.clipboard.writeText(mapsLink).then(function() {
-        document.getElementById('loc-status').style.display = 'block';
-        document.getElementById('loc-status').textContent = '📍 Location link copied! Paste it in your group chat.';
-        btn.textContent = '📍 Share my location';
-        btn.disabled = false;
-        toast('Location link copied ✓');
-      });
-    }, function() {
-      toast('Could not get location — check permissions');
-      btn.textContent = '📍 Share my location';
-      btn.disabled = false;
-    });
+  function closeFriendPlan() {
+    var overlay = document.getElementById('friend-plan-overlay');
+    overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none';
   }
 
-  // ── Load plan from URL on start ──
+  function requestJoinPlan() { toast('Join request sent ✓'); closeFriendPlan(); }
+
   async function checkPlanInURL() {
     var params = new URLSearchParams(window.location.search);
     var planId = params.get('plan');
