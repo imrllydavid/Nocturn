@@ -356,7 +356,7 @@
     position: absolute;
     inset: 0;
   }
-  #main-map .leaflet-tile { filter: brightness(0.45) saturate(0.4) hue-rotate(180deg); }
+  #main-map .leaflet-tile { filter: brightness(0.38) saturate(0.25) hue-rotate(195deg); }
   #main-map .leaflet-container { background: #0d1018; }
   #main-map .leaflet-control-attribution {
     font-size: 8px !important;
@@ -390,18 +390,34 @@
   .lmap-venue-pin.dim   { opacity: 0.65; }
   .lmap-venue-pin.green { border-color: rgba(125,186,138,0.5); color: var(--green); background: rgba(10,20,12,0.92); }
 
+  /* ── Draggable bottom sheet ── */
   .sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
     background: var(--surface);
     border-top: 1px solid var(--border);
-    padding: 16px 28px 20px;
-    flex-shrink: 0;
+    border-radius: 18px 18px 0 0;
+    padding: 10px 20px 120px;
+    z-index: 400;
+    touch-action: none;
+    transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+    max-height: 82%;
+    overflow-y: auto;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
   }
+  .sheet.expanded { transform: translateY(0); }
+  .sheet.collapsed { transform: translateY(calc(100% - 64px)); }
 
+  .sheet-handle-wrap {
+    display: flex; justify-content: center;
+    padding: 6px 0 12px;
+    cursor: grab;
+    user-select: none;
+  }
   .sheet-bar {
-    width: 36px; height: 3px;
+    width: 36px; height: 4px;
     background: var(--border);
     border-radius: 2px;
-    margin: 0 auto 14px;
   }
 
   .sheet-label {
@@ -428,18 +444,18 @@
   }
 
   .nb-icon {
-    font-size: 22px;
-    width: 44px; height: 44px;
+    font-size: 20px;
+    width: 40px; height: 40px;
     background: var(--surface2);
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
 
-  .nb-info { flex: 1; }
-  .nb-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .nb-info { flex: 1; min-width: 0; }
+  .nb-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nb-meta { font-size: 12px; color: var(--muted); }
-  .nb-right { text-align: right; }
+  .nb-right { text-align: right; flex-shrink: 0; }
   .nb-dist { font-size: 12px; color: var(--accent); font-weight: 500; }
   .nb-crowd { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
@@ -918,7 +934,7 @@
     position: relative;
   }
   /* Dark tile filter */
-  .crew-map .leaflet-tile { filter: brightness(0.45) saturate(0.4) hue-rotate(180deg); }
+  .crew-map .leaflet-tile { filter: brightness(0.38) saturate(0.25) hue-rotate(195deg); }
   .crew-map .leaflet-container { background: #0d1018; }
   /* Hide leaflet attribution (keep it but make it subtle) */
   .crew-map .leaflet-control-attribution {
@@ -1255,8 +1271,8 @@
   <div class="content">
 
     <!-- ── MAP ── -->
-    <div id="page-map" class="page active" style="display:flex;flex-direction:column;">
-      <div class="map-wrap" style="flex:1;position:relative;">
+    <div id="page-map" class="page active" style="display:flex;flex-direction:column;position:relative;">
+      <div class="map-wrap" style="flex:1;position:relative;min-height:0;">
         <div id="main-map"></div>
         <div class="map-ctrl-group">
           <div class="map-ctrl" onclick="mainMapZoom(1)">＋</div>
@@ -1264,24 +1280,12 @@
           <div class="map-ctrl" onclick="mainMapLocate()">⊕</div>
         </div>
       </div>
-      <div class="sheet">
-        <div class="sheet-bar"></div>
-        <div class="sheet-label">Nearby tonight</div>
-        <div class="nearby-row sel" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.','32-37 Cowper St, London EC2A 4AP')">
-          <div class="nb-icon">🔊</div>
-          <div class="nb-info"><div class="nb-name">XOYO</div><div class="nb-meta">Club · Islington · 5 friends going</div></div>
-          <div class="nb-right"><div class="nb-dist">0.3 mi</div><div class="nb-crowd">Low queue</div></div>
+      <div class="sheet collapsed" id="map-sheet">
+        <div class="sheet-handle-wrap" id="sheet-handle">
+          <div class="sheet-bar"></div>
         </div>
-        <div class="nearby-row" onclick="modal('Fabric','Club · Farringdon','10pm – 6am','£20 advance','Drum & bass night with four rooms. Dense crowds expected after midnight.','10 Charterhouse St, London EC1M 6AA')">
-          <div class="nb-icon">🎵</div>
-          <div class="nb-info"><div class="nb-name">Fabric</div><div class="nb-meta">Club · Farringdon · 3 friends going</div></div>
-          <div class="nb-right"><div class="nb-dist">0.5 mi</div><div class="nb-crowd">Busy tonight</div></div>
-        </div>
-        <div class="nearby-row" onclick="modal('ECC Mayfair','Cocktail Bar · Mayfair','5pm – 1am','Free entry','Prohibition-era cocktail bar. Expert mixologists, no reservations needed.','9 Conduit St, London W1S 2XG')">
-          <div class="nb-icon">🍸</div>
-          <div class="nb-info"><div class="nb-name">ECC Mayfair</div><div class="nb-meta">Bar · Free entry</div></div>
-          <div class="nb-right"><div class="nb-dist">0.8 mi</div><div class="nb-crowd">Quiet now</div></div>
-        </div>
+        <div class="sheet-label" id="sheet-label">Tonight's stops</div>
+        <div id="nearby-list"></div>
       </div>
     </div>
 
@@ -1580,7 +1584,7 @@
     if (btn) btn.classList.add('active');
     updateBackBtn(id);
     if (id === 'page-meet') refreshFriendsPage();
-    if (id === 'page-map') { setTimeout(function(){ initMainMap(); if (_mainMap) _mainMap.invalidateSize(); }, 80); }
+    if (id === 'page-map') { setTimeout(function(){ initMainMap(); if (_mainMap) _mainMap.invalidateSize(); renderNearbyList(); }, 80); }
   }
 
   function updateBackBtn(pageId) {
@@ -1793,6 +1797,7 @@
     (stops || []).forEach(function(_,i){ renderStopVote(i); });
     // Subscribe to live crew locations if plan has an ID
     if (plan.id) subscribeCrewLocations(plan.id);
+    renderNearbyList();
   }
 
   function makeStopRow(stop, i, total) {
@@ -2078,6 +2083,123 @@
     { name: 'ECC Mayfair',    lat: 51.5122, lng: -0.1432, green: true, venue: 'Cocktail Bar · Mayfair', hours: '5pm – 1am', price: 'Free entry', about: 'Prohibition-era cocktail bar. Expert mixologists, no reservations needed.',  address: '9 Conduit St, London W1S 2XG' },
     { name: 'Sky Garden',     lat: 51.5113, lng: -0.0831, hot: false, venue: 'Bar · City of London', hours: '6:30pm – 11pm', price: 'Free (book ahead)', about: "London's highest public garden. Exceptional views, advance booking required.", address: '1 Sky Garden Walk, London EC3M 8AF' },
   ];
+
+  // ── Bottom sheet drag ──
+  (function() {
+    var sheet, handle, startY, startTranslate, dragging = false;
+    var PEEK = 64; // px visible when collapsed
+
+    function getTranslate(el) {
+      var t = el.style.transform;
+      var m = t && t.match(/translateY\(([^)]+)\)/);
+      if (!m) return 0;
+      var v = m[1];
+      if (v.endsWith('px')) return parseFloat(v);
+      // calc(100% - 64px) — treat as "collapsed"
+      return el.getBoundingClientRect().height - PEEK;
+    }
+
+    function snapSheet(expand) {
+      sheet.style.transition = 'transform 0.3s cubic-bezier(0.32,0.72,0,1)';
+      if (expand) {
+        sheet.classList.remove('collapsed');
+        sheet.classList.add('expanded');
+        sheet.style.transform = 'translateY(0)';
+      } else {
+        sheet.classList.remove('expanded');
+        sheet.classList.add('collapsed');
+        sheet.style.transform = 'translateY(calc(100% - ' + PEEK + 'px))';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      sheet = document.getElementById('map-sheet');
+      handle = document.getElementById('sheet-handle');
+      if (!sheet || !handle) return;
+
+      // Apply initial collapsed transform explicitly
+      sheet.style.transform = 'translateY(calc(100% - ' + PEEK + 'px))';
+
+      function onStart(e) {
+        dragging = true;
+        startY = e.touches ? e.touches[0].clientY : e.clientY;
+        var rect = sheet.getBoundingClientRect();
+        var fullH = sheet.scrollHeight;
+        startTranslate = rect.top - (window.innerHeight - fullH);
+        sheet.style.transition = 'none';
+        e.preventDefault();
+      }
+      function onMove(e) {
+        if (!dragging) return;
+        var y = e.touches ? e.touches[0].clientY : e.clientY;
+        var dy = y - startY;
+        var newT = Math.max(0, startTranslate + dy);
+        sheet.style.transform = 'translateY(' + newT + 'px)';
+        e.preventDefault();
+      }
+      function onEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        var y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+        var dy = y - startY;
+        snapSheet(dy < -30 || (startTranslate < 80 && dy < 30));
+      }
+
+      handle.addEventListener('touchstart', onStart, { passive: false });
+      handle.addEventListener('touchmove', onMove, { passive: false });
+      handle.addEventListener('touchend', onEnd);
+      handle.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
+
+      // Tap handle to toggle
+      handle.addEventListener('click', function() {
+        var expanded = sheet.classList.contains('expanded');
+        snapSheet(!expanded);
+      });
+    });
+  })();
+
+  // ── Render nearby / itinerary list in the sheet ──
+  var STOP_ICONS = ['🍸','🔊','🌆','🎵','🎷','🌿','🥂','🎭','🍽️','🎤'];
+  function renderNearbyList() {
+    var list = document.getElementById('nearby-list');
+    var label = document.getElementById('sheet-label');
+    if (!list) return;
+
+    var stops = currentPlan && currentPlan.stops && currentPlan.stops.length > 0
+      ? currentPlan.stops : null;
+
+    if (stops) {
+      if (label) label.textContent = currentPlan.name || 'Tonight's plan';
+      list.innerHTML = stops.map(function(stop, i) {
+        var icon = STOP_ICONS[i % STOP_ICONS.length];
+        var time = stop.time ? formatTime(stop.time) : '';
+        var end  = stop.end_time ? ' – ' + formatTime(stop.end_time) : '';
+        return '<div class="nearby-row" onclick="">' +
+          '<div class="nb-icon">' + icon + '</div>' +
+          '<div class="nb-info">' +
+            '<div class="nb-name">' + escHtml(stop.place || 'Stop') + '</div>' +
+            '<div class="nb-meta">' + escHtml(stop.address || '') + '</div>' +
+          '</div>' +
+          (time ? '<div class="nb-right"><div class="nb-dist">' + time + end + '</div></div>' : '') +
+        '</div>';
+      }).join('');
+    } else {
+      if (label) label.textContent = 'Nearby tonight';
+      list.innerHTML = [
+        { icon:'🔊', name:'XOYO', meta:'Club · Islington', dist:'0.3 mi', crowd:'Low queue',  v:'XOYO',        sub:'Club · Islington',      h:'11pm – 5am', p:'£18',          ab:'House & techno across two floors.',         addr:'32-37 Cowper St, London EC2A 4AP' },
+        { icon:'🎵', name:'Fabric',meta:'Club · Farringdon',dist:'0.5 mi',crowd:'Busy tonight',v:'Fabric',       sub:'Club · Farringdon',     h:'10pm – 6am', p:'£20 advance',  ab:'Drum & bass night with four rooms.',        addr:'10 Charterhouse St, London EC1M 6AA' },
+        { icon:'🍸', name:'ECC Mayfair',meta:'Bar · Free entry',dist:'0.8 mi',crowd:'Quiet now',v:'ECC Mayfair',sub:'Cocktail Bar · Mayfair', h:'5pm – 1am',  p:'Free entry',   ab:'Prohibition-era cocktail bar.',             addr:'9 Conduit St, London W1S 2XG' },
+      ].map(function(r) {
+        return '<div class="nearby-row sel" onclick="modal('' + r.v + '','' + r.sub + '','' + r.h + '','' + r.p + '','' + r.ab + '','' + r.addr + '')">' +
+          '<div class="nb-icon">' + r.icon + '</div>' +
+          '<div class="nb-info"><div class="nb-name">' + r.name + '</div><div class="nb-meta">' + r.meta + '</div></div>' +
+          '<div class="nb-right"><div class="nb-dist">' + r.dist + '</div><div class="nb-crowd">' + r.crowd + '</div></div>' +
+        '</div>';
+      }).join('');
+    }
+  }
 
   function initMainMap() {
     if (_mainMap || typeof L === 'undefined') return;
