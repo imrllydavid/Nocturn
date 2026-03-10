@@ -706,7 +706,14 @@
 
   /* Edit stop inline */
   .tl-edit-row {
-    display: flex; gap: 8px; margin-top: 8px; align-items: center;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
   }
   .tl-edit-time {
     width: 90px;
@@ -1754,14 +1761,14 @@
         + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit name</button>'
         + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
         + '</div>'
-        + '<div class="tl-edit-row" id="tl-edit-' + i + '" style="display:none;flex-direction:column;gap:8px;">'
+        + '<div class="tl-edit-row" id="tl-edit-' + i + '" style="display:none;">'
         + '<input type="text" class="tl-edit-name" id="tl-edit-name-' + i + '" value="' + stop.place + '" placeholder="Place name" />'
-        + '<div style="display:flex;gap:8px;align-items:center;">'
-        + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" style="flex:1;" />'
-        + '<span style="color:var(--muted);font-size:12px;">to</span>'
-        + '<input type="time" class="tl-edit-time" id="tl-edit-end-' + i + '" value="' + (stop.end_time||'') + '" style="flex:1;" />'
-        + '<button class="tl-save-btn" onclick="saveStop(' + i + ')">Save</button>'
+        + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+        + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" />'
+        + '<span style="color:var(--muted);font-size:12px;flex-shrink:0;">to</span>'
+        + '<input type="time" class="tl-edit-time" id="tl-edit-end-' + i + '" value="' + (stop.end_time||'') + '" />'
         + '</div>'
+        + '<button class="tl-save-btn" onclick="saveStop(' + i + ')">Save</button>'
         + '</div>'
         + '</div>';
       tl.appendChild(row);
@@ -1807,11 +1814,13 @@
   // ── Stop editing ──
   function editStop(i) {
     var editRow = document.getElementById('tl-edit-' + i);
-    var isOpen = editRow.style.display !== 'none';
-    // close all others first
-    document.querySelectorAll('[id^="tl-edit-"]').forEach(function(el){ el.style.display = 'none'; });
-    editRow.style.display = isOpen ? 'none' : 'flex';
-    if (!isOpen) document.getElementById('tl-edit-name-' + i).focus();
+    var isOpen = editRow.style.display === 'flex' || editRow.style.display === 'block';
+    // close all edit rows by class
+    document.querySelectorAll('.tl-edit-row').forEach(function(el){ el.style.display = 'none'; });
+    if (!isOpen) {
+      editRow.style.display = 'flex';
+      setTimeout(function(){ document.getElementById('tl-edit-name-' + i).focus(); }, 50);
+    }
   }
 
   function saveStop(i) {
