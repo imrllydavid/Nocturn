@@ -351,115 +351,27 @@
     min-height: 0;
   }
 
-  .map-canvas {
+  /* Main map — same dark tile treatment as crew map */
+  #main-map {
     position: absolute;
     inset: 0;
-    background: #0d1018;
-    overflow: hidden;
   }
+  #main-map .leaflet-tile { filter: brightness(0.45) saturate(0.4) hue-rotate(180deg); }
+  #main-map .leaflet-container { background: #0d1018; }
+  #main-map .leaflet-control-attribution {
+    font-size: 8px !important;
+    background: rgba(0,0,0,0.4) !important;
+    color: rgba(255,255,255,0.25) !important;
+  }
+  #main-map .leaflet-control-attribution a { color: rgba(255,255,255,0.3) !important; }
+  #main-map .leaflet-control-zoom { display: none; } /* we use custom controls */
 
-  .map-canvas::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 48px 48px;
-  }
-
-  .map-canvas::after {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-    background-size: 12px 12px;
-  }
-
-  .road-h {
-    position: absolute;
-    left: 0; right: 0;
-    background: rgba(255,255,255,0.055);
-    border-radius: 1px;
-  }
-  .road-v {
-    position: absolute;
-    top: 0; bottom: 0;
-    background: rgba(255,255,255,0.055);
-    border-radius: 1px;
-  }
-  .road-thick {
-    background: rgba(255,255,255,0.09) !important;
-  }
-
-  .block {
-    position: absolute;
-    background: rgba(255,255,255,0.02);
-    border-radius: 3px;
-  }
-
-  .my-dot {
-    position: absolute;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: #4a9eff;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 8px rgba(74,158,255,0.18), 0 2px 8px rgba(0,0,0,0.5);
-    z-index: 4;
-    transform: translate(-50%, -50%);
-  }
-
-  .pin {
-    position: absolute;
-    transform: translate(-50%, -100%);
-    z-index: 5;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .pin:hover { transform: translate(-50%, -100%) scale(1.08); }
-
-  .pin-body {
-    background: var(--surface);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
-    padding: 6px 12px;
-    display: flex; align-items: center; gap: 7px;
-    font-size: 12px; font-weight: 400;
-    white-space: nowrap;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.6);
-    position: relative;
-  }
-
-  .pin-body.hot {
-    background: rgba(20,16,8,0.95);
-    border-color: rgba(232,213,163,0.35);
-    color: var(--accent);
-  }
-
-  .pin-body::after {
-    content: '';
-    position: absolute;
-    bottom: -6px; left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: var(--surface);
-    border-bottom: none;
-  }
-  .pin-body.hot::after { border-top-color: rgba(20,16,8,0.95); }
-
-  .pin-circle {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
-  .pin-body.hot .pin-circle { background: var(--accent); }
-  .pin-body.grn .pin-circle { background: var(--green); }
-
+  /* Custom map controls */
   .map-ctrl-group {
     position: absolute;
     top: 16px; right: 16px;
     display: flex; flex-direction: column; gap: 6px;
-    z-index: 6;
+    z-index: 500;
   }
 
   .map-ctrl {
@@ -473,6 +385,10 @@
     transition: border-color .2s;
   }
   .map-ctrl:hover { border-color: var(--accent); }
+
+  /* Main map pin variants — extends lmap-venue-pin */
+  .lmap-venue-pin.dim   { opacity: 0.65; }
+  .lmap-venue-pin.green { border-color: rgba(125,186,138,0.5); color: var(--green); background: rgba(10,20,12,0.92); }
 
   .sheet {
     background: var(--surface);
@@ -1341,35 +1257,11 @@
     <!-- ── MAP ── -->
     <div id="page-map" class="page active" style="display:flex;flex-direction:column;">
       <div class="map-wrap" style="flex:1;position:relative;">
-        <div class="map-canvas">
-          <div class="road-h road-thick" style="top:38%;height:5px;"></div>
-          <div class="road-h road-thick" style="top:62%;height:5px;"></div>
-          <div class="road-v road-thick" style="left:35%;width:5px;"></div>
-          <div class="road-v road-thick" style="left:65%;width:5px;"></div>
-          <div class="road-h" style="top:22%;height:2px;"></div>
-          <div class="road-h" style="top:50%;height:2px;"></div>
-          <div class="road-h" style="top:78%;height:2px;"></div>
-          <div class="road-v" style="left:20%;width:2px;"></div>
-          <div class="road-v" style="left:50%;width:2px;"></div>
-          <div class="road-v" style="left:80%;width:2px;"></div>
-          <div class="block" style="left:36%;top:23%;width:12%;height:14%;"></div>
-          <div class="block" style="left:66%;top:39%;width:12%;height:21%;"></div>
-          <div class="block" style="left:21%;top:39%;width:12%;height:21%;"></div>
-          <div class="block" style="left:51%;top:63%;width:12%;height:13%;"></div>
-          <div class="block" style="left:36%;top:63%;width:12%;height:13%;"></div>
-          <div class="block" style="left:66%;top:63%;width:12%;height:13%;"></div>
-          <div class="my-dot" style="left:50%;top:50%;"></div>
-          <div class="pin" style="left:27%;top:37%;" onclick="modal('Fabric','Club · Farringdon','10pm – 6am','£20 advance','Drum & bass night with four rooms. Dense crowds expected after midnight.','10 Charterhouse St, London EC1M 6AA')"><div class="pin-body hot"><div class="pin-circle"></div>Fabric</div></div>
-          <div class="pin" style="left:63%;top:28%;" onclick="modal('Aviary','Rooftop · Shoreditch','6pm – 2am','£15 entry','Stunning skyline views. Cocktail-forward menu, DJ sets from 9pm.','10 Finsbury Square, London EC2A 1AF')"><div class="pin-body"><div class="pin-circle"></div>Aviary</div></div>
-          <div class="pin" style="left:50%;top:58%;" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.','32-37 Cowper St, London EC2A 4AP')"><div class="pin-body hot"><div class="pin-circle"></div>XOYO</div></div>
-          <div class="pin" style="left:77%;top:45%;" onclick="modal('Ronnie Scott\'s','Live Jazz · Soho','8pm – 3am','£35 members','Legendary venue. Tonight: late-night quartet with open bar after midnight.','47 Frith St, London W1D 4HT')"><div class="pin-body"><div class="pin-circle"></div>Ronnie Scott's</div></div>
-          <div class="pin" style="left:21%;top:64%;" onclick="modal('ECC Mayfair','Cocktail Bar · Mayfair','5pm – 1am','Free entry','Prohibition-era cocktail bar. Expert mixologists, no reservations needed.','9 Conduit St, London W1S 2XG')"><div class="pin-body grn"><div class="pin-circle" style="background:var(--green)"></div>ECC</div></div>
-          <div class="pin" style="left:67%;top:71%;" onclick="modal('Sky Garden','Bar · City of London','6:30pm – 11pm','Free (book ahead)','London\'s highest public garden. Exceptional views, advance booking required.','1 Sky Garden Walk, London EC3M 8AF')"><div class="pin-body"><div class="pin-circle"></div>Sky Garden</div></div>
-          <div class="map-ctrl-group">
-            <div class="map-ctrl" onclick="toast('Zoomed in')">＋</div>
-            <div class="map-ctrl" onclick="toast('Zoomed out')">－</div>
-            <div class="map-ctrl" onclick="toast('Locating you…')">⊕</div>
-          </div>
+        <div id="main-map"></div>
+        <div class="map-ctrl-group">
+          <div class="map-ctrl" onclick="mainMapZoom(1)">＋</div>
+          <div class="map-ctrl" onclick="mainMapZoom(-1)">－</div>
+          <div class="map-ctrl" onclick="mainMapLocate()">⊕</div>
         </div>
       </div>
       <div class="sheet">
@@ -1655,6 +1547,7 @@
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').style.display = 'flex';
     checkPlanInURL();
+    setTimeout(initMainMap, 200);
     var email = user.email || '';
     var name = user.user_metadata?.full_name || email;
     var initials = name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
@@ -1687,6 +1580,7 @@
     if (btn) btn.classList.add('active');
     updateBackBtn(id);
     if (id === 'page-meet') refreshFriendsPage();
+    if (id === 'page-map') { setTimeout(function(){ initMainMap(); if (_mainMap) _mainMap.invalidateSize(); }, 80); }
   }
 
   function updateBackBtn(pageId) {
@@ -2173,6 +2067,80 @@
   var _leafletYouMarker = null;
   var CREW_DOT_COLORS = ['#7dba8a','#e8a3c4','#a3c4e8','#c4a3e8','#e8c4a3'];
 
+  // ── MAIN MAP (Map page) ──
+  var _mainMap = null;
+  var _mainMapYouMarker = null;
+  var _mainMapVenues = [
+    { name: 'Fabric',         lat: 51.5220, lng: -0.1006, hot: true,  venue: 'Club · Farringdon',   hours: '10pm – 6am',  price: '£20 advance', about: 'Drum & bass night with four rooms. Dense crowds expected after midnight.',   address: '10 Charterhouse St, London EC1M 6AA' },
+    { name: 'Aviary',         lat: 51.5197, lng: -0.0871, hot: false, venue: 'Rooftop · Shoreditch', hours: '6pm – 2am',   price: '£15 entry',   about: 'Stunning skyline views. Cocktail-forward menu, DJ sets from 9pm.',           address: '10 Finsbury Square, London EC2A 1AF' },
+    { name: 'XOYO',           lat: 51.5245, lng: -0.0874, hot: true,  venue: 'Club · Islington',    hours: '11pm – 5am',  price: '£18',         about: 'House & techno across two floors. Resident DJs plus a special guest.',       address: '32-37 Cowper St, London EC2A 4AP' },
+    { name: "Ronnie Scott's", lat: 51.5133, lng: -0.1313, hot: false, venue: 'Live Jazz · Soho',    hours: '8pm – 3am',   price: '£35 members', about: 'Legendary venue. Tonight: late-night quartet with open bar after midnight.',  address: '47 Frith St, London W1D 4HT' },
+    { name: 'ECC Mayfair',    lat: 51.5122, lng: -0.1432, green: true, venue: 'Cocktail Bar · Mayfair', hours: '5pm – 1am', price: 'Free entry', about: 'Prohibition-era cocktail bar. Expert mixologists, no reservations needed.',  address: '9 Conduit St, London W1S 2XG' },
+    { name: 'Sky Garden',     lat: 51.5113, lng: -0.0831, hot: false, venue: 'Bar · City of London', hours: '6:30pm – 11pm', price: 'Free (book ahead)', about: "London's highest public garden. Exceptional views, advance booking required.", address: '1 Sky Garden Walk, London EC3M 8AF' },
+  ];
+
+  function initMainMap() {
+    if (_mainMap || typeof L === 'undefined') return;
+    var el = document.getElementById('main-map');
+    if (!el) return;
+    _mainMap = L.map('main-map', {
+      zoomControl: false,
+      attributionControl: true,
+      dragging: true,
+      scrollWheelZoom: false,
+      doubleClickZoom: true,
+      touchZoom: true
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OSM',
+      maxZoom: 19
+    }).addTo(_mainMap);
+    _mainMap.setView([51.5175, -0.105], 14);
+
+    // Place venue pins
+    _mainMapVenues.forEach(function(v) {
+      var cls = v.green ? 'lmap-venue-pin green' : v.hot ? 'lmap-venue-pin' : 'lmap-venue-pin dim';
+      var icon = L.divIcon({
+        className: '',
+        html: '<div class="' + cls + '">' + v.name + '</div>',
+        iconAnchor: [0, 28]
+      });
+      L.marker([v.lat, v.lng], { icon: icon })
+        .on('click', function() {
+          modal(v.name, v.venue, v.hours, v.price, v.about, v.address);
+        })
+        .addTo(_mainMap);
+    });
+
+    setTimeout(function() { _mainMap.invalidateSize(); }, 150);
+  }
+
+  function mainMapZoom(dir) {
+    if (!_mainMap) return;
+    _mainMap.setZoom(_mainMap.getZoom() + dir);
+  }
+
+  function mainMapLocate() {
+    if (!_mainMap) return;
+    if (!navigator.geolocation) { toast('Location not available'); return; }
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude, lng = pos.coords.longitude;
+      _mainMap.setView([lat, lng], 15);
+      if (_mainMapYouMarker) _mainMap.removeLayer(_mainMapYouMarker);
+      var icon = L.divIcon({ className: '', html: '<div class="lmap-you-dot"></div>', iconAnchor: [7, 7] });
+      _mainMapYouMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 }).addTo(_mainMap);
+      toast('📍 Found you');
+    }, function() { toast('Location access denied'); });
+  }
+
+  // Also update main map you-dot when live location is active
+  function updateMainMapYou(lat, lng) {
+    if (!_mainMap) return;
+    if (_mainMapYouMarker) _mainMap.removeLayer(_mainMapYouMarker);
+    var icon = L.divIcon({ className: '', html: '<div class="lmap-you-dot"></div>', iconAnchor: [7, 7] });
+    _mainMapYouMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 }).addTo(_mainMap);
+  }
+
   function initLeafletMap() {
     if (_leafletMap) return;
     var el = document.getElementById('crew-map');
@@ -2533,7 +2501,8 @@
           window._myLng = p.coords.longitude;
           await broadcastLocation(p.coords.latitude, p.coords.longitude);
           renderCrewWithLocations();
-          renderCrewMap((currentPlan && currentPlan.stops) || []); // update map
+          renderCrewMap((currentPlan && currentPlan.stops) || []);
+          updateMainMapYou(p.coords.latitude, p.coords.longitude);
         }, null, { enableHighAccuracy: true, maximumAge: 5000 });
 
         // Update button UI
