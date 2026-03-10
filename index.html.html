@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" onload="if(typeof initMainMap==='function') initMainMap();"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1551,7 +1551,8 @@
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').style.display = 'flex';
     checkPlanInURL();
-    setTimeout(initMainMap, 200);
+    // Defer map init until after layout paint + Leaflet CDN ready
+    setTimeout(initMainMap, 300);
     var email = user.email || '';
     var name = user.user_metadata?.full_name || email;
     var initials = name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
@@ -1584,7 +1585,13 @@
     if (btn) btn.classList.add('active');
     updateBackBtn(id);
     if (id === 'page-meet') refreshFriendsPage();
-    if (id === 'page-map') { setTimeout(function(){ initMainMap(); if (_mainMap) _mainMap.invalidateSize(); renderNearbyList(); }, 80); }
+    if (id === 'page-map') {
+      renderNearbyList();
+      setTimeout(function(){
+        initMainMap();
+        setTimeout(function(){ if (_mainMap) _mainMap.invalidateSize(); }, 200);
+      }, 50);
+    }
   }
 
   function updateBackBtn(pageId) {
@@ -2203,9 +2210,16 @@
   }
 
   function initMainMap() {
-    if (_mainMap || typeof L === 'undefined') return;
+    if (_mainMap) return;
+    if (typeof L === 'undefined') {
+      // Leaflet CDN not loaded yet — retry shortly
+      setTimeout(initMainMap, 100); return;
+    }
     var el = document.getElementById('main-map');
-    if (!el) return;
+    if (!el || el.offsetWidth === 0) {
+      // Container not visible/sized yet — retry
+      setTimeout(initMainMap, 100); return;
+    }
     _mainMap = L.map('main-map', {
       zoomControl: false,
       attributionControl: true,
@@ -2244,8 +2258,8 @@
   }
 
   function mainMapLocate() {
-    if (!_mainMap) return;
-    if (!navigator.geolocation) { toast('Location not available'); return; }
+    if (!navigator.geolocation) { toast('Location not supported on this device'); return; }
+    if (!_mainMap) { initMainMap(); setTimeout(mainMapLocate, 300); return; }
     navigator.geolocation.getCurrentPosition(function(pos) {
       var lat = pos.coords.latitude, lng = pos.coords.longitude;
       _mainMap.setView([lat, lng], 15);
@@ -2661,7 +2675,7 @@
   }
 
   async function broadcastLocation(lat, lng) {
-    if (!currentPlan || !currentPlan.id) return;
+    if (!currentPlan || !currentPlan.id) return; // silently skip broadcast if no plan loaded
     var { data: { user } } = await sb.auth.getUser();
     if (!user) return;
     await sb.from('crew_locations').upsert({
