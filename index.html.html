@@ -529,20 +529,21 @@
   .nb-crowd { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
   /* ════════════ DISCOVER PAGE ════════════ */
-  #page-discover { padding: 0 28px 28px; }
+  #page-discover { padding: 0 16px 100px; }
 
   .filter-strip {
     display: flex; gap: 8px;
-    padding: 16px 0 18px;
+    padding: 14px 0 16px;
     overflow-x: auto;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
   .filter-strip::-webkit-scrollbar { display: none; }
 
   .pill {
-    padding: 7px 16px;
+    padding: 8px 16px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     border: 1px solid var(--border);
     background: none;
     color: var(--muted);
@@ -559,13 +560,13 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--muted);
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
   .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .ecard {
@@ -576,26 +577,27 @@
     padding: 16px;
     cursor: pointer;
     transition: all .2s;
+    width: 100%;
   }
-  .ecard:hover { border-color: rgba(232,213,163,0.25); transform: translateY(-1px); }
+  .ecard:active { border-color: rgba(232,213,163,0.25); background: var(--surface2); }
 
   .ec-icon {
-    font-size: 26px;
-    width: 52px; height: 52px;
+    font-size: 24px;
+    width: 48px; height: 48px;
     background: var(--surface2);
-    border-radius: 14px;
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
 
   .ec-info { flex: 1; min-width: 0; }
-  .ec-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ec-venue { font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+  .ec-name { font-size: 15px; font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ec-venue { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
   .ec-tags { display: flex; gap: 5px; flex-wrap: wrap; }
 
   .tag {
     font-size: 10px;
-    padding: 2px 9px;
+    padding: 3px 9px;
     border-radius: 5px;
     background: var(--surface2);
     color: var(--muted);
@@ -618,21 +620,25 @@
   .face:first-child { margin-left: 0; }
 
   /* ════════════ PLAN PAGE ════════════ */
-  #page-plan { padding: 24px 28px 28px; }
+  #page-plan { padding: 0; }
+
+  #plan-empty { padding: 60px 24px; }
+
+  #plan-active > div:first-child { padding: 20px 16px 0; }
 
   .plan-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 16px;
-    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 12px 16px 100px;
   }
 
   .pcard {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 22px;
-    margin-bottom: 14px;
+    padding: 18px;
+    margin-bottom: 12px;
   }
 
   .pcard-label {
@@ -1203,7 +1209,7 @@
 
     <!-- ── DISCOVER ── -->
     <div id="page-discover" class="page">
-      <div class="filter-strip" style="padding-left:28px;padding-right:28px;">
+      <div class="filter-strip">
         <button class="pill on" onclick="fp(this)">All</button>
         <button class="pill" onclick="fp(this)">Clubs</button>
         <button class="pill" onclick="fp(this)">Bars</button>
@@ -1211,7 +1217,7 @@
         <button class="pill" onclick="fp(this)">Rooftops</button>
         <button class="pill" onclick="fp(this)">Late Night</button>
       </div>
-      <div style="padding:0 28px;">
+      <div>
         <div class="sec-label">Tonight · 47 events near you</div>
         <div class="cards-grid">
           <div class="ecard" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.')"><div class="ec-icon">🔊</div><div class="ec-info"><div class="ec-name">XOYO Residents</div><div class="ec-venue">XOYO · Islington</div><div class="ec-tags"><span class="tag a">Club</span><span class="tag g">5 going</span></div></div><div class="ec-right"><div class="ec-time">11pm</div><div class="faces"><div class="face">M</div><div class="face">A</div><div class="face">T</div></div></div></div>
