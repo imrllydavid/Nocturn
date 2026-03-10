@@ -1368,6 +1368,16 @@
     <div class="mrow"><span class="mic">🕐</span><span class="mlbl">Hours</span><span class="mval" id="m-hours"></span></div>
     <div class="mrow"><span class="mic">💳</span><span class="mlbl">Entry</span><span class="mval" id="m-price"></span></div>
     <div class="mrow"><span class="mic">📝</span><span class="mlbl">About</span><span class="mval" id="m-about" style="color:var(--muted);font-size:13px;line-height:1.5;"></span></div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <div style="flex:1;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px;">Arrive <span style="font-size:10px;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></div>
+        <input type="time" id="m-start-time" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:16px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:7px;">Leave <span style="font-size:10px;color:var(--muted);text-transform:none;letter-spacing:0;">(optional)</span></div>
+        <input type="time" id="m-end-time" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:16px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+      </div>
+    </div>
     <div class="mbtns">
       <button class="btn btn-p" onclick="addPlan();closeModal()">Add to plan</button>
       <button class="btn btn-s" onclick="toast('Shared with crew ✓');closeModal()">Share with crew</button>
@@ -1560,6 +1570,8 @@
     document.getElementById('m-hours').textContent = hours;
     document.getElementById('m-price').textContent = price;
     document.getElementById('m-about').textContent = about;
+    document.getElementById('m-start-time').value = '';
+    document.getElementById('m-end-time').value = '';
     document.getElementById('overlay').classList.add('open');
   }
 
@@ -1578,8 +1590,10 @@
       openCreatePlan();
       return;
     }
+    var startTime = document.getElementById('m-start-time').value || '';
+    var endTime = document.getElementById('m-end-time').value || '';
     var stops = currentPlan.stops || [];
-    stops.push({ time: '', place: curName });
+    stops.push({ time: startTime, end_time: endTime, place: curName });
     currentPlan.stops = stops;
     showPlanLocally(currentPlan);
     toast(curName + ' added to your plan ✓');
@@ -1726,8 +1740,10 @@
       var row = document.createElement('div');
       row.className = 'tl-row';
       row.setAttribute('data-idx', i);
-      var timeClass = timeLabel ? 'tl-t' : 'tl-t-empty';
-      var timeDisplay = timeLabel ? timeLabel : '+ Add time';
+      var endLabel = stop.end_time ? formatTime(stop.end_time) : '';
+      var fullTimeLabel = timeLabel && endLabel ? timeLabel + ' – ' + endLabel : (timeLabel || endLabel);
+      var timeClass = fullTimeLabel ? 'tl-t' : 'tl-t-empty';
+      var timeDisplay = fullTimeLabel ? fullTimeLabel : '+ Add time';
       row.innerHTML = '<div class="tl-spine"><div class="tl-dot"></div>' + (i < stops.length-1 ? '<div class="tl-bar"></div>' : '') + '</div>'
         + '<div class="tl-body">'
         + '<div class="tl-main">'
@@ -1738,10 +1754,14 @@
         + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit name</button>'
         + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
         + '</div>'
-        + '<div class="tl-edit-row" id="tl-edit-' + i + '" style="display:none;">'
-        + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" />'
-        + '<input type="text" class="tl-edit-name" id="tl-edit-name-' + i + '" value="' + stop.place + '" />'
+        + '<div class="tl-edit-row" id="tl-edit-' + i + '" style="display:none;flex-direction:column;gap:8px;">'
+        + '<input type="text" class="tl-edit-name" id="tl-edit-name-' + i + '" value="' + stop.place + '" placeholder="Place name" />'
+        + '<div style="display:flex;gap:8px;align-items:center;">'
+        + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" style="flex:1;" />'
+        + '<span style="color:var(--muted);font-size:12px;">to</span>'
+        + '<input type="time" class="tl-edit-time" id="tl-edit-end-' + i + '" value="' + (stop.end_time||'') + '" style="flex:1;" />'
         + '<button class="tl-save-btn" onclick="saveStop(' + i + ')">Save</button>'
+        + '</div>'
         + '</div>'
         + '</div>';
       tl.appendChild(row);
@@ -1796,9 +1816,11 @@
 
   function saveStop(i) {
     var newTime = document.getElementById('tl-edit-time-' + i).value;
+    var newEndTime = document.getElementById('tl-edit-end-' + i).value;
     var newName = document.getElementById('tl-edit-name-' + i).value.trim();
     if (!newName) { toast('Stop needs a name'); return; }
     currentPlan.stops[i].time = newTime;
+    currentPlan.stops[i].end_time = newEndTime;
     currentPlan.stops[i].place = newName;
     showPlanLocally(currentPlan);
     toast('Stop updated ✓');
