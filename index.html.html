@@ -637,6 +637,58 @@
   .tl-n { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
   .tl-d { font-size: 12px; color: var(--muted); }
 
+  .tl-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .tl-action-btn {
+    padding: 4px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tl-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tl-action-btn.del:hover { border-color: var(--red); color: var(--red); }
+
+  /* Edit stop inline */
+  .tl-edit-row {
+    display: flex; gap: 8px; margin-top: 8px; align-items: center;
+  }
+  .tl-edit-time {
+    width: 90px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+  .tl-edit-time:focus { border-color: var(--accent); }
+  .tl-edit-name {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+  .tl-edit-name:focus { border-color: var(--accent); }
+  .tl-save-btn {
+    padding: 7px 14px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
   .add-btn {
     display: flex; align-items: center; gap: 8px;
     font-size: 13px; color: var(--muted);
@@ -1579,7 +1631,21 @@
       var timeLabel = stop.time ? formatTime(stop.time) : '';
       var row = document.createElement('div');
       row.className = 'tl-row';
-      row.innerHTML = '<div class="tl-spine"><div class="tl-dot"></div>' + (i < stops.length-1 ? '<div class="tl-bar"></div>' : '') + '</div><div class="tl-body"><div class="tl-t">' + timeLabel + '</div><div class="tl-n">' + stop.place + '</div></div>';
+      row.setAttribute('data-idx', i);
+      row.innerHTML = '<div class="tl-spine"><div class="tl-dot"></div>' + (i < stops.length-1 ? '<div class="tl-bar"></div>' : '') + '</div>'
+        + '<div class="tl-body">'
+        + '<div class="tl-t" id="tl-t-' + i + '">' + timeLabel + '</div>'
+        + '<div class="tl-n" id="tl-n-' + i + '">' + stop.place + '</div>'
+        + '<div class="tl-actions">'
+        + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit time</button>'
+        + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
+        + '</div>'
+        + '<div class="tl-edit-row" id="tl-edit-' + i + '" style="display:none;">'
+        + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" />'
+        + '<input type="text" class="tl-edit-name" id="tl-edit-name-' + i + '" value="' + stop.place + '" />'
+        + '<button class="tl-save-btn" onclick="saveStop(' + i + ')">Save</button>'
+        + '</div>'
+        + '</div>';
       tl.appendChild(row);
     });
 
@@ -1618,6 +1684,32 @@
     }).catch(function(){
       toast('Share: ' + window.location.href);
     });
+  }
+
+  // ── Stop editing ──
+  function editStop(i) {
+    var editRow = document.getElementById('tl-edit-' + i);
+    var isOpen = editRow.style.display !== 'none';
+    // close all others first
+    document.querySelectorAll('[id^="tl-edit-"]').forEach(function(el){ el.style.display = 'none'; });
+    editRow.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) document.getElementById('tl-edit-name-' + i).focus();
+  }
+
+  function saveStop(i) {
+    var newTime = document.getElementById('tl-edit-time-' + i).value;
+    var newName = document.getElementById('tl-edit-name-' + i).value.trim();
+    if (!newName) { toast('Stop needs a name'); return; }
+    currentPlan.stops[i].time = newTime;
+    currentPlan.stops[i].place = newName;
+    showPlanLocally(currentPlan);
+    toast('Stop updated ✓');
+  }
+
+  function deleteStop(i) {
+    currentPlan.stops.splice(i, 1);
+    showPlanLocally(currentPlan);
+    toast('Stop removed');
   }
 
   // ── Load plan from URL on start ──
