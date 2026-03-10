@@ -876,6 +876,53 @@
   .b-mb { background: rgba(232,213,163,0.1); color: var(--accent); border: 1px solid rgba(232,213,163,0.18); }
   .b-no { background: rgba(201,112,112,0.1); color: var(--red); border: 1px solid rgba(201,112,112,0.2); }
 
+  /* ── Crew proximity ── */
+  .crew-row {
+    display: flex; align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .crew-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .crew-row-r { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+
+  .prox-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .prox-at    { background: rgba(125,186,138,0.13); color: var(--green);  border: 1px solid rgba(125,186,138,0.25); }
+  .prox-close { background: rgba(232,213,163,0.10); color: var(--accent); border: 1px solid rgba(232,213,163,0.22); }
+  .prox-away  { background: rgba(255,255,255,0.04); color: var(--muted);  border: 1px solid var(--border); }
+  .prox-off   { background: rgba(201,112,112,0.08); color: var(--red);    border: 1px solid rgba(201,112,112,0.18); }
+
+  .prox-venue {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: right;
+    max-width: 110px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .prox-bar-wrap {
+    width: 60px;
+    height: 3px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+  .prox-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width .4s ease;
+  }
+
   /* ── Per-stop voting ── */
   .stop-vote-row {
     display: flex;
@@ -1885,13 +1932,46 @@
     // Rebuild crew
     var crew = document.getElementById('crew-list');
     crew.innerHTML = '';
+    var firstStop = (plan.stops || [])[0];
+    var firstVenueName = firstStop ? firstStop.place : null;
+
+    // You (organiser)
     var initials = getInitials(plan.owner_name || 'You');
-    crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a882,#e8d5a3)">' + initials + '</div><div><div class="cn">' + (plan.owner_name || 'You') + '</div><div class="cs">Organiser</div></div></div><span class="badge b-in">In</span></div>';
-    (plan.invitees || []).forEach(function(email) {
-      var ini = email[0].toUpperCase();
-      crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">' + ini + '</div><div><div class="cn">' + email + '</div><div class="cs">Invited · No response yet</div></div></div><span class="badge b-mb">Pending</span></div>';
+    crew.innerHTML += makeCrewRow({
+      initials: initials,
+      name: plan.owner_name || 'You',
+      gradient: 'linear-gradient(135deg,#c4a882,#e8d5a3)',
+      prox: 'at',
+      proxLabel: firstVenueName ? 'At ' + truncate(firstVenueName, 14) : 'At venue',
+      venueRef: firstVenueName,
+      barPct: 100,
+      barColor: 'var(--green)'
     });
-    document.getElementById('crew-label').textContent = 'Crew · ' + (1 + (plan.invitees||[]).length) + ' invited';
+
+    // Simulated crew statuses (in production from Supabase Realtime)
+    var CREW_SIMS = [
+      { color: 'linear-gradient(135deg,#7dba8a,#5da870)', prox: 'at',    proxLabel: firstVenueName ? 'At ' + truncate(firstVenueName,14) : 'At venue', venueRef: firstVenueName, barPct: 100, barColor: 'var(--green)' },
+      { color: 'linear-gradient(135deg,#e8a3c4,#d482b0)', prox: 'close', proxLabel: '4 min away',    venueRef: firstVenueName, barPct: 72,  barColor: 'var(--accent)' },
+      { color: 'linear-gradient(135deg,#a3c4e8,#82b0d4)', prox: 'away',  proxLabel: '12 min away',   venueRef: firstVenueName, barPct: 35,  barColor: '#777' },
+      { color: 'linear-gradient(135deg,#c4a3e8,#a882d4)', prox: 'close', proxLabel: '2 min away',    venueRef: firstVenueName, barPct: 88,  barColor: 'var(--accent)' },
+      { color: 'linear-gradient(135deg,#e8d5a3,#c4a882)', prox: 'off',   proxLabel: 'Location off',  venueRef: null,           barPct: 0,   barColor: '#555' },
+    ];
+
+    (plan.invitees || []).forEach(function(email, idx) {
+      var sim = CREW_SIMS[idx % CREW_SIMS.length];
+      crew.innerHTML += makeCrewRow({
+        initials: email[0].toUpperCase(),
+        name: email,
+        gradient: sim.color,
+        prox: sim.prox,
+        proxLabel: sim.proxLabel,
+        venueRef: sim.venueRef,
+        barPct: sim.barPct,
+        barColor: sim.barColor
+      });
+    });
+
+    document.getElementById('crew-label').textContent = 'Crew · ' + (1 + (plan.invitees||[]).length) + ' people';
 
     currentPlan = plan;
     initDragDrop();
@@ -2214,6 +2294,48 @@
         return '<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:' + c.color + ';flex-shrink:0;display:inline-block;"></span><span style="font-size:11px;color:var(--muted);">' + c.name + '</span></span>';
       }).join('');
     }
+  }
+
+  function truncate(str, n) {
+    return str && str.length > n ? str.slice(0, n-1) + '…' : (str || '');
+  }
+
+  function makeCrewRow(opts) {
+    var proxClass = {
+      at: 'prox-at', close: 'prox-close', away: 'prox-away', off: 'prox-off'
+    }[opts.prox] || 'prox-away';
+
+    var barHtml = opts.barPct > 0
+      ? '<div class="prox-bar-wrap"><div class="prox-bar" style="width:' + opts.barPct + '%;background:' + opts.barColor + ';"></div></div>'
+      : '';
+
+    var venueHtml = opts.venueRef
+      ? '<div class="prox-venue">' + escHtml(truncate(opts.venueRef, 16)) + '</div>'
+      : '';
+
+    return '<div class="crew-row">'
+      + '<div class="crew-l">'
+      + '<div class="cava" style="background:' + opts.gradient + '">' + opts.initials + '</div>'
+      + '<div>'
+      + '<div class="cn">' + escHtml(opts.name) + '</div>'
+      + '<div class="cs" style="display:flex;align-items:center;gap:5px;margin-top:3px;">'
+      + (opts.prox === 'at'
+          ? '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0;"></span>'
+          : opts.prox === 'close'
+          ? '<span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0;"></span>'
+          : opts.prox === 'off'
+          ? '<span style="width:6px;height:6px;border-radius:50%;background:var(--muted);display:inline-block;flex-shrink:0;"></span>'
+          : '<span style="width:6px;height:6px;border-radius:50%;background:var(--muted);display:inline-block;flex-shrink:0;"></span>')
+      + opts.proxLabel
+      + '</div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="crew-row-r">'
+      + '<span class="prox-badge ' + proxClass + '">' + opts.proxLabel + '</span>'
+      + venueHtml
+      + barHtml
+      + '</div>'
+      + '</div>';
   }
 
   function escHtml(str) {
