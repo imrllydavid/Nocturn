@@ -180,6 +180,19 @@
     letter-spacing: 0.02em;
   }
 
+  .back-btn {
+    display: none;
+    align-items: center; gap: 6px;
+    background: none; border: none;
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .back-btn.visible { display: flex; }
+  .back-btn-arrow { font-size: 18px; line-height: 1; }
+
   .topbar-right { display: flex; align-items: center; gap: 10px; }
 
   .icon-btn {
@@ -1102,7 +1115,10 @@
 
   <!-- TOP BAR -->
   <header class="topbar">
-    <div class="logo">Nocturn</div>
+    <div class="logo" id="topbar-logo">Nocturn</div>
+    <button class="back-btn" id="back-btn" onclick="goBack()">
+      <span class="back-btn-arrow">‹</span> Back
+    </button>
     <div class="topbar-right">
       <div class="icon-btn">🔔<span class="notif-dot"></span></div>
       <div class="avatar" id="user-avatar" onclick="toggleAvatarMenu()">
@@ -1452,11 +1468,36 @@
   // ── App navigation ──
   var curName = '';
 
+  var pageHistory = ['page-map'];
+
   function showPage(id, btn) {
+    var current = document.querySelector('.page.active');
+    if (current && current.id !== id) pageHistory.push(current.id);
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
     document.getElementById(id).classList.add('active');
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
+    updateBackBtn(id);
+  }
+
+  function updateBackBtn(pageId) {
+    var mainPages = ['page-map', 'page-discover', 'page-plan', 'page-meet'];
+    var isMain = mainPages.indexOf(pageId) !== -1;
+    document.getElementById('topbar-logo').style.display = isMain ? 'block' : 'none';
+    document.getElementById('back-btn').classList.toggle('visible', !isMain);
+  }
+
+  function goBack() {
+    if (pageHistory.length > 1) {
+      pageHistory.pop();
+      var prev = pageHistory[pageHistory.length - 1];
+      var navBtns = document.querySelectorAll('.nav-btn');
+      var pageOrder = ['page-map','page-discover','page-plan','page-meet'];
+      var idx = pageOrder.indexOf(prev);
+      showPage(prev, idx >= 0 ? navBtns[idx] : null);
+    } else {
+      showPage('page-map', document.querySelector('.nav-btn'));
+    }
   }
 
   function fp(btn) {
