@@ -804,6 +804,16 @@
   .vote-thumb { font-size: 18px; opacity: 0; transition: opacity .2s; }
   .vote-option.voted .vote-thumb { opacity: 1; }
 
+  /* ════════ FRIENDS PAGE ════════ */
+  .friend-plan-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+    transition: opacity .15s;
+  }
+  .friend-plan-row:last-child { border-bottom: none; }
+  .friend-plan-row:active { opacity: .7; }
+  .friend-row-l { display: flex; align-items: center; gap: 12px; }
+
   .crew-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
   .crew-row:last-child { border-bottom:none; }
   .crew-l { display:flex; align-items:center; gap:12px; }
@@ -1276,40 +1286,87 @@
 
     <!-- ── MEET ── -->
     <div id="page-meet" class="page">
-      <!-- No plan state -->
-      <div id="meet-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;">
-        <div style="font-size:48px;margin-bottom:16px;">🌙</div>
-        <div class="pg-title" style="margin-bottom:8px;">No plan tonight</div>
-        <div style="font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;">Create a plan first and invite your crew — then you can coordinate here.</div>
-        <button class="plan-empty-btn" onclick="openCreatePlan()">+ Create a plan</button>
+      <div style="padding:24px 16px 0;">
+        <div class="pg-title">Friends</div>
+        <div class="pg-sub" style="margin-bottom:20px;">What your crew is doing tonight</div>
+
+        <!-- Add friend -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;">
+          <input type="email" id="friend-input" placeholder="Add by email…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;" />
+          <button onclick="addFriend()" style="padding:12px 18px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Add</button>
+        </div>
       </div>
 
-      <!-- Active meet state -->
-      <div id="meet-active" style="display:none;padding:20px 16px 100px;">
-        <div class="pg-title" id="meet-plan-name">Tonight</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;" id="meet-plan-date"></div>
+      <!-- Friend feed -->
+      <div style="padding:0 16px 100px;" id="friends-feed">
 
-        <!-- Who's coming -->
-        <div class="pcard" style="margin-bottom:12px;">
-          <div class="pcard-label">Who's coming</div>
-          <div id="meet-crew-list"></div>
+        <!-- Friends with plans tonight (demo data until real friends added) -->
+        <div class="pcard" style="margin-bottom:10px;" id="friends-list-card">
+          <div class="pcard-label">Out tonight</div>
+          <div id="friends-out-list">
+            <div class="friend-plan-row" onclick="viewFriendPlan('Marcus','Fabric night','Fabric → XOYO → ECC','10pm')">
+              <div class="friend-row-l">
+                <div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4);width:40px;height:40px;font-size:13px;">MA</div>
+                <div>
+                  <div style="font-size:14px;font-weight:500;">Marcus A</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Fabric night · starts 10pm</div>
+                  <div style="font-size:12px;color:var(--accent);margin-top:3px;">Fabric → XOYO → ECC</div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Tonight</div>
+            </div>
+            <div class="friend-plan-row" onclick="viewFriendPlan('Priya','Jazz &amp; cocktails','Ronnie Scott's → Sky Garden','8pm')">
+              <div class="friend-row-l">
+                <div class="cava" style="background:linear-gradient(135deg,#c4a3e8,#a882d4);width:40px;height:40px;font-size:13px;">PM</div>
+                <div>
+                  <div style="font-size:14px;font-weight:500;">Priya M</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">Jazz &amp; cocktails · starts 8pm</div>
+                  <div style="font-size:12px;color:var(--accent);margin-top:3px;">Ronnie Scott's → Sky Garden</div>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap;">Tonight</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Share location -->
-        <div class="pcard" style="margin-bottom:12px;">
-          <div class="pcard-label">Your location</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Share a link so your crew can see where you are in real time.</div>
-          <button id="share-loc-btn" onclick="shareLocation()" style="width:100%;padding:13px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">📍 Share my location</button>
-          <div id="loc-status" style="display:none;margin-top:12px;font-size:13px;color:var(--green);text-align:center;"></div>
+        <!-- No plan tonight -->
+        <div class="pcard" style="margin-bottom:10px;">
+          <div class="pcard-label">No plans yet</div>
+          <div class="friend-row-l" style="padding:6px 0;">
+            <div class="cava" style="background:linear-gradient(135deg,#e8c4a3,#d4a882);width:40px;height:40px;font-size:13px;">TK</div>
+            <div>
+              <div style="font-size:14px;font-weight:500;">Tara K</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">Nothing planned yet</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Vote on next stop -->
+        <!-- Your plan visibility -->
         <div class="pcard">
-          <div class="pcard-label">Vote · Where next?</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Pick your next stop from the plan — your crew votes too.</div>
-          <div id="vote-options"></div>
-          <div id="vote-result" style="display:none;margin-top:14px;padding:12px 14px;background:rgba(125,186,138,0.1);border:1px solid rgba(125,186,138,0.2);border-radius:10px;font-size:13px;color:var(--green);"></div>
-          <button onclick="showPage('page-discover', document.querySelector('.nav-btn:nth-child(2)'))" style="margin-top:12px;width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">+ Suggest somewhere from Discover</button>
+          <div class="pcard-label">Your plan</div>
+          <div id="friends-my-plan-status" style="font-size:13px;color:var(--muted);line-height:1.6;">You haven't created a plan yet tonight. Friends can see your plan once you create one.</div>
+          <div id="friends-my-plan-card" style="display:none;">
+            <div style="font-size:15px;font-weight:500;margin-bottom:4px;" id="fmp-name"></div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;" id="fmp-stops"></div>
+            <button onclick="shareLocation()" style="width:100%;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;">📍 Share my location with crew</button>
+          </div>
+          <button id="friends-create-btn" onclick="openCreatePlan()" style="margin-top:12px;width:100%;padding:11px;background:var(--accent);color:#0a0a0a;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">+ Create tonight's plan</button>
+        </div>
+
+      </div>
+
+      <!-- Friend plan modal -->
+      <div id="friend-plan-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;display:flex;align-items:flex-end;">
+        <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:70vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s;" id="fpm-sheet">
+          <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+          <div style="font-size:20px;font-weight:500;margin-bottom:4px;" id="fpm-name"></div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px;" id="fpm-time"></div>
+          <div class="pcard-label" style="margin-bottom:10px;">Their itinerary</div>
+          <div id="fpm-stops" style="font-size:14px;color:var(--text);line-height:2;"></div>
+          <div style="display:flex;gap:8px;margin-top:20px;">
+            <button onclick="joinFriendPlan()" style="flex:1;padding:13px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Join their plan</button>
+            <button onclick="closeFriendPlan()" style="padding:13px 18px;background:none;border:1px solid var(--border);border-radius:12px;font-size:14px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">Close</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1352,7 +1409,7 @@
     <button class="nav-btn active" onclick="showPage('page-map',this)"><span class="nav-icon">🗺</span>Map</button>
     <button class="nav-btn" onclick="showPage('page-discover',this)"><span class="nav-icon">✦</span>Discover</button>
     <button class="nav-btn" onclick="showPage('page-plan',this)"><span class="nav-icon">📋</span>Plan</button>
-    <button class="nav-btn" onclick="showPage('page-meet',this)"><span class="nav-icon">📍</span>Meet Up</button>
+    <button class="nav-btn" onclick="showPage('page-meet',this)"><span class="nav-icon">👥</span>Friends</button>
   </nav>
 
 </div>
@@ -1534,7 +1591,7 @@
     document.getElementById(id).classList.add('active');
     if (btn) btn.classList.add('active');
     updateBackBtn(id);
-    if (id === 'page-meet') refreshMeetPage();
+    if (id === 'page-meet') refreshFriendsPage();
   }
 
   function updateBackBtn(pageId) {
@@ -1884,6 +1941,7 @@
     document.getElementById('plan-active').style.display = 'none';
     document.getElementById('plan-empty').style.display = 'flex';
     toast('Plan deleted');
+    refreshFriendsPage();
   }
 
   // ── Meet Up page ──
