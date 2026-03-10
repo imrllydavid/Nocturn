@@ -876,6 +876,150 @@
   .b-mb { background: rgba(232,213,163,0.1); color: var(--accent); border: 1px solid rgba(232,213,163,0.18); }
   .b-no { background: rgba(201,112,112,0.1); color: var(--red); border: 1px solid rgba(201,112,112,0.2); }
 
+  /* ── Per-stop voting ── */
+  .stop-vote-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .vote-lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-right: 2px;
+  }
+  .vote-face-stack {
+    display: flex;
+    align-items: center;
+  }
+  .vote-face {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    margin-left: -5px;
+    font-size: 7px;
+    display: flex; align-items: center; justify-content: center;
+    color: #0a0a0a; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .vote-face:first-child { margin-left: 0; }
+  .vote-count {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 6px;
+  }
+  .vote-sep { flex: 1; }
+  .vote-up-btn, .vote-down-btn {
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: none;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    line-height: 1;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .vote-up-btn .vcount, .vote-down-btn .vcount {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    transition: color .15s;
+  }
+  .vote-up-btn:hover, .vote-up-btn.active {
+    border-color: var(--green);
+    background: rgba(125,186,138,0.08);
+  }
+  .vote-up-btn.active .vcount { color: var(--green); }
+  .vote-down-btn:hover, .vote-down-btn.active {
+    border-color: var(--red);
+    background: rgba(201,112,112,0.08);
+  }
+  .vote-down-btn.active .vcount { color: var(--red); }
+
+  /* ── Crew map ── */
+  .crew-map {
+    width: 100%;
+    height: 180px;
+    background: #0d1018;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .crew-map::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .cmap-road-h {
+    position: absolute; left:0; right:0;
+    background: rgba(255,255,255,0.07); border-radius:1px;
+  }
+  .cmap-road-v {
+    position: absolute; top:0; bottom:0;
+    background: rgba(255,255,255,0.07); border-radius:1px;
+  }
+  .cmap-pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    z-index: 3;
+  }
+  .cmap-pin-body {
+    background: var(--surface);
+    border: 1px solid rgba(232,213,163,0.35);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: var(--accent);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    position: relative;
+  }
+  .cmap-pin-body::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--surface);
+    border-bottom: none;
+  }
+  .cmap-you {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #4a9eff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 5px rgba(74,158,255,0.2);
+    z-index: 4;
+    transform: translate(-50%,-50%);
+  }
+  .cmap-crew-dot {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    z-index: 4;
+    transform: translate(-50%,-50%);
+  }
+  .cmap-label {
+    position: absolute;
+    bottom: 8px; left: 10px;
+    font-size: 10px;
+    color: rgba(240,237,232,0.4);
+    letter-spacing: 0.05em;
+  }
+
   .share-strip {
     display: flex; align-items: center; gap: 10px;
     padding: 13px 16px;
@@ -1296,6 +1440,32 @@
             <div class="pcard">
               <div class="pcard-label" id="crew-label">Crew</div>
               <div id="crew-list"></div>
+            </div>
+            <div class="pcard" style="padding:14px 16px 16px;">
+              <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:400;margin-bottom:12px;">Crew map</div>
+              <div class="crew-map" id="crew-map">
+                <div class="cmap-road-h" style="top:35%;height:3px;"></div>
+                <div class="cmap-road-h" style="top:65%;height:3px;"></div>
+                <div class="cmap-road-v" style="left:30%;width:3px;"></div>
+                <div class="cmap-road-v" style="left:70%;width:3px;"></div>
+                <div class="cmap-road-h" style="top:20%;height:1px;opacity:.5;"></div>
+                <div class="cmap-road-h" style="top:50%;height:1px;opacity:.5;"></div>
+                <div class="cmap-road-h" style="top:80%;height:1px;opacity:.5;"></div>
+                <div class="cmap-road-v" style="left:15%;width:1px;opacity:.5;"></div>
+                <div class="cmap-road-v" style="left:50%;width:1px;opacity:.5;"></div>
+                <div class="cmap-road-v" style="left:85%;width:1px;opacity:.5;"></div>
+                <!-- venue pins rendered by JS -->
+                <div id="cmap-pins"></div>
+                <!-- you dot -->
+                <div class="cmap-you" style="left:48%;top:52%;"></div>
+                <!-- crew dots -->
+                <div id="cmap-crew-dots"></div>
+                <div class="cmap-label">Live · tonight</div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a9eff;flex-shrink:0;"></span> You &nbsp;
+                <span id="cmap-crew-legend" style="display:flex;align-items:center;gap:6px;"></span>
+              </div>
             </div>
             <div class="share-strip" onclick="copyPlanLink()"><span>🔗</span><span>Share plan with friends</span><span>Copy link</span></div>
           </div>
@@ -1725,6 +1895,9 @@
 
     currentPlan = plan;
     initDragDrop();
+    renderCrewMap(stops);
+    // Restore vote renders
+    (stops || []).forEach(function(_,i){ renderStopVote(i); });
   }
 
   function makeStopRow(stop, i, total) {
@@ -1757,6 +1930,14 @@
       + '<div class="tl-actions">'
       + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit</button>'
       + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
+      + '</div>'
+      + '<div class="stop-vote-row">'
+      + '<span class="vote-lbl">Vibes</span>'
+      + '<div class="vote-face-stack" id="up-faces-' + i + '"></div>'
+      + '<span class="vote-count" id="up-count-' + i + '"></span>'
+      + '<span class="vote-sep"></span>'
+      + '<button class="vote-down-btn" id="vdown-' + i + '" onclick="castStopVote(' + i + ', -1, event)">👎 <span class="vcount" id="vdown-c-' + i + '">0</span></button>'
+      + '<button class="vote-up-btn" id="vup-' + i + '" onclick="castStopVote(' + i + ', 1, event)">👍 <span class="vcount" id="vup-c-' + i + '">0</span></button>'
       + '</div>'
       + '<div class="tl-edit-row" id="tl-edit-' + i + '">'
       + '<input type="text" class="tl-edit-name" id="tl-edit-name-' + i + '" value="' + escHtml(stop.place||'') + '" placeholder="Stop name" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:2px;" onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border)\'"/>'
@@ -1935,6 +2116,104 @@
     currentPlan.stops.splice(i, 1);
     showPlanLocally(currentPlan);
     toast('Stop removed');
+  }
+
+  // ── Per-stop votes: { stopIdx: { up: Set, down: Set } } ──
+  var stopVotes = {};
+
+  function castStopVote(idx, dir, e) {
+    e.stopPropagation();
+    if (!stopVotes[idx]) stopVotes[idx] = { up: new Set(), down: new Set() };
+    var v = stopVotes[idx];
+    var myId = 'me';
+    // Toggle same dir off
+    if (dir === 1) {
+      if (v.up.has(myId)) { v.up.delete(myId); }
+      else { v.up.add(myId); v.down.delete(myId); }
+    } else {
+      if (v.down.has(myId)) { v.down.delete(myId); }
+      else { v.down.add(myId); v.up.delete(myId); }
+    }
+    renderStopVote(idx);
+  }
+
+  function renderStopVote(idx) {
+    var v = stopVotes[idx] || { up: new Set(), down: new Set() };
+    var upBtn = document.getElementById('vup-' + idx);
+    var downBtn = document.getElementById('vdown-' + idx);
+    var upCount = document.getElementById('vup-c-' + idx);
+    var downCount = document.getElementById('vdown-c-' + idx);
+    var upFaces = document.getElementById('up-faces-' + idx);
+    var upCountEl = document.getElementById('up-count-' + idx);
+    if (!upBtn) return;
+    var myId = 'me';
+    upBtn.classList.toggle('active', v.up.has(myId));
+    downBtn.classList.toggle('active', v.down.has(myId));
+    upCount.textContent = v.up.size;
+    downCount.textContent = v.down.size;
+    // Face stack for upvoters
+    if (upFaces) {
+      upFaces.innerHTML = '';
+      var colors = ['#e8d5a3','#7dba8a','#a3c4e8','#e8a3c4','#c4a3e8'];
+      Array.from(v.up).slice(0,4).forEach(function(uid, ci) {
+        var d = document.createElement('div');
+        d.className = 'vote-face';
+        d.style.background = colors[ci % colors.length];
+        d.textContent = uid === 'me' ? 'Y' : uid[0].toUpperCase();
+        upFaces.appendChild(d);
+      });
+      if (upCountEl) upCountEl.textContent = v.up.size > 0 ? v.up.size + ' in' : '';
+    }
+  }
+
+  // ── Crew map: place venue pins from stops ──
+  var CREW_POSITIONS = [
+    { name: 'Alex', color: '#7dba8a', x: 38, y: 44 },
+    { name: 'Maya', color: '#e8a3c4', x: 61, y: 58 },
+    { name: 'Tom',  color: '#a3c4e8', x: 44, y: 63 },
+  ];
+
+  function renderCrewMap(stops) {
+    var pinsEl = document.getElementById('cmap-pins');
+    var dotsEl = document.getElementById('cmap-crew-dots');
+    var legendEl = document.getElementById('cmap-crew-legend');
+    if (!pinsEl) return;
+
+    pinsEl.innerHTML = '';
+    // Scatter stop pins across map canvas
+    var positions = [
+      {x:22,y:28},{x:55,y:18},{x:72,y:38},{x:35,y:72},{x:78,y:65},{x:18,y:55}
+    ];
+    stops.forEach(function(stop, i) {
+      var pos = positions[i % positions.length];
+      var pin = document.createElement('div');
+      pin.className = 'cmap-pin';
+      pin.style.left = pos.x + '%';
+      pin.style.top = pos.y + '%';
+      var name = stop.place || 'Stop';
+      pin.innerHTML = '<div class="cmap-pin-body">' + escHtml(name.length > 12 ? name.slice(0,11)+'…' : name) + '</div>';
+      pinsEl.appendChild(pin);
+    });
+
+    // Crew dots
+    if (dotsEl) {
+      dotsEl.innerHTML = '';
+      CREW_POSITIONS.forEach(function(c) {
+        var dot = document.createElement('div');
+        dot.className = 'cmap-crew-dot';
+        dot.style.left = c.x + '%';
+        dot.style.top = c.y + '%';
+        dot.style.background = c.color;
+        dotsEl.appendChild(dot);
+      });
+    }
+
+    // Legend
+    if (legendEl) {
+      legendEl.innerHTML = CREW_POSITIONS.map(function(c) {
+        return '<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:' + c.color + ';flex-shrink:0;display:inline-block;"></span><span style="font-size:11px;color:var(--muted);">' + c.name + '</span></span>';
+      }).join('');
+    }
   }
 
   function escHtml(str) {
