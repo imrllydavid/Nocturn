@@ -1149,7 +1149,7 @@
       <div class="plan-empty" id="plan-empty">
         <div class="plan-empty-icon">🌙</div>
         <div class="plan-empty-title">No plan yet tonight</div>
-        <div class="plan-empty-sub">Create a plan, add your stops,<br>and invite your crew.</div>
+        <div class="plan-empty-sub">Name your night, then browse Discover<br>to add stops and invite your crew.</div>
         <button class="plan-empty-btn" onclick="openCreatePlan()">+ Create a plan</button>
       </div>
       <!-- Active plan -->
@@ -1166,6 +1166,10 @@
             <div class="pcard">
               <div class="pcard-label">Itinerary</div>
               <div class="tl" id="active-tl"></div>
+              <div id="no-stops-hint" style="display:none; padding:14px; background:var(--surface2); border-radius:10px; margin-top:8px; text-align:center;">
+                <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">No stops yet — browse venues to add them</div>
+                <button onclick="showPage('page-discover', document.querySelector('.nav-btn:nth-child(2)'))" style="padding:9px 18px; background:var(--accent); color:#0a0a0a; border:none; border-radius:8px; font-size:13px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer;">Browse Discover →</button>
+              </div>
             </div>
           </div>
           <div>
@@ -1212,6 +1216,7 @@
     <div class="cp-sheet">
       <div class="cp-handle"></div>
       <div class="cp-title">Create a plan</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;">Give your night a name and a date. You can add stops from Discover and invite your crew after.</p>
 
       <div class="cp-field">
         <label>Plan name</label>
@@ -1223,28 +1228,7 @@
         <input type="date" id="cp-date" />
       </div>
 
-      <div class="cp-field">
-        <label>Stops &amp; times</label>
-        <div class="cp-stops" id="cp-stops">
-          <div class="cp-stop-row">
-            <input type="time" class="cp-stop-time" placeholder="9:00 PM" />
-            <input type="text" class="cp-stop-name" placeholder="Where are you going?" />
-            <button class="cp-stop-del" onclick="removeStop(this)">×</button>
-          </div>
-        </div>
-        <button class="cp-add-stop" onclick="addStop()"><span style="font-size:18px;line-height:1">+</span> Add a stop</button>
-      </div>
-
-      <div class="cp-field">
-        <label>Invite friends (email)</label>
-        <div class="cp-invite-row">
-          <input type="email" class="cp-invite-input" id="cp-invite-input" placeholder="friend@example.com" onkeydown="if(event.key==='Enter')addInvitee()" />
-          <button class="cp-invite-btn" onclick="addInvitee()">Add</button>
-        </div>
-        <div class="cp-invitees" id="cp-invitees"></div>
-      </div>
-
-      <button class="cp-submit" onclick="submitPlan()">Create plan &amp; invite crew</button>
+      <button class="cp-submit" onclick="submitPlan()">Let's go →</button>
     </div>
   </div>
 
@@ -1446,7 +1430,17 @@
   }
 
   function addPlan() {
-    toast(curName + ' added to tonight\'s plan ✓');
+    if (!currentPlan) {
+      toast('Create a plan first!');
+      closeModal();
+      openCreatePlan();
+      return;
+    }
+    var stops = currentPlan.stops || [];
+    stops.push({ time: '', place: curName });
+    currentPlan.stops = stops;
+    showPlanLocally(currentPlan);
+    toast(curName + ' added to your plan ✓');
   }
 
   function toast(msg) {
@@ -1523,7 +1517,7 @@
       if (place) stops.push({ time: time, place: place });
     });
 
-    if (stops.length === 0) { toast('Add at least one stop'); return; }
+    // stops are optional - can be added from Discover
 
     var btn = document.querySelector('.cp-submit');
     btn.disabled = true;
@@ -1579,6 +1573,8 @@
     var tl = document.getElementById('active-tl');
     tl.innerHTML = '';
     var stops = plan.stops || [];
+    var hint = document.getElementById('no-stops-hint');
+    if (hint) hint.style.display = stops.length === 0 ? 'block' : 'none';
     stops.forEach(function(stop, i) {
       var timeLabel = stop.time ? formatTime(stop.time) : '';
       var row = document.createElement('div');
