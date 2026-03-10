@@ -6,6 +6,8 @@
 <title>Nocturn — Nightlife Coordination</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -990,81 +992,51 @@
   }
   .vote-down-btn.active .vcount { color: var(--red); }
 
-  /* ── Crew map ── */
+  /* ── Crew map (Leaflet) ── */
   .crew-map {
     width: 100%;
-    height: 180px;
-    background: #0d1018;
+    height: 220px;
     border-radius: 12px;
-    position: relative;
     overflow: hidden;
     margin-bottom: 14px;
+    position: relative;
   }
-  .crew-map::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 32px 32px;
+  /* Dark tile filter */
+  .crew-map .leaflet-tile { filter: brightness(0.45) saturate(0.4) hue-rotate(180deg); }
+  .crew-map .leaflet-container { background: #0d1018; }
+  /* Hide leaflet attribution (keep it but make it subtle) */
+  .crew-map .leaflet-control-attribution {
+    font-size: 8px !important;
+    background: rgba(0,0,0,0.4) !important;
+    color: rgba(255,255,255,0.25) !important;
   }
-  .cmap-road-h {
-    position: absolute; left:0; right:0;
-    background: rgba(255,255,255,0.07); border-radius:1px;
-  }
-  .cmap-road-v {
-    position: absolute; top:0; bottom:0;
-    background: rgba(255,255,255,0.07); border-radius:1px;
-  }
-  .cmap-pin {
-    position: absolute;
-    transform: translate(-50%, -100%);
-    z-index: 3;
-  }
-  .cmap-pin-body {
+  .crew-map .leaflet-control-attribution a { color: rgba(255,255,255,0.3) !important; }
+  /* Custom marker styles used via divIcon */
+  .lmap-venue-pin {
     background: var(--surface);
-    border: 1px solid rgba(232,213,163,0.35);
+    border: 1px solid rgba(232,213,163,0.5);
     border-radius: 8px;
-    padding: 4px 8px;
+    padding: 3px 7px;
     font-size: 10px;
     color: var(--accent);
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.7);
+    font-family: "DM Sans", sans-serif;
+    font-weight: 500;
     position: relative;
   }
-  .cmap-pin-body::after {
-    content: '';
-    position: absolute;
-    bottom: -5px; left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--surface);
-    border-bottom: none;
-  }
-  .cmap-you {
-    position: absolute;
-    width: 12px; height: 12px;
+  .lmap-you-dot {
+    width: 14px; height: 14px;
     border-radius: 50%;
     background: #4a9eff;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 5px rgba(74,158,255,0.2);
-    z-index: 4;
-    transform: translate(-50%,-50%);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 5px rgba(74,158,255,0.25);
   }
-  .cmap-crew-dot {
-    position: absolute;
-    width: 10px; height: 10px;
+  .lmap-crew-dot {
+    width: 12px; height: 12px;
     border-radius: 50%;
-    border: 2px solid var(--surface);
-    z-index: 4;
-    transform: translate(-50%,-50%);
-  }
-  .cmap-label {
-    position: absolute;
-    bottom: 8px; left: 10px;
-    font-size: 10px;
-    color: rgba(240,237,232,0.4);
-    letter-spacing: 0.05em;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
   }
 
   .share-strip {
@@ -1490,25 +1462,7 @@
             </div>
             <div class="pcard" style="padding:14px 16px 16px;">
               <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:400;margin-bottom:12px;">Crew map</div>
-              <div class="crew-map" id="crew-map">
-                <div class="cmap-road-h" style="top:35%;height:3px;"></div>
-                <div class="cmap-road-h" style="top:65%;height:3px;"></div>
-                <div class="cmap-road-v" style="left:30%;width:3px;"></div>
-                <div class="cmap-road-v" style="left:70%;width:3px;"></div>
-                <div class="cmap-road-h" style="top:20%;height:1px;opacity:.5;"></div>
-                <div class="cmap-road-h" style="top:50%;height:1px;opacity:.5;"></div>
-                <div class="cmap-road-h" style="top:80%;height:1px;opacity:.5;"></div>
-                <div class="cmap-road-v" style="left:15%;width:1px;opacity:.5;"></div>
-                <div class="cmap-road-v" style="left:50%;width:1px;opacity:.5;"></div>
-                <div class="cmap-road-v" style="left:85%;width:1px;opacity:.5;"></div>
-                <!-- venue pins rendered by JS -->
-                <div id="cmap-pins"></div>
-                <!-- you dot -->
-                <div class="cmap-you" style="left:48%;top:52%;"></div>
-                <!-- crew dots -->
-                <div id="cmap-crew-dots"></div>
-                <div class="cmap-label">Live · tonight</div>
-              </div>
+              <div class="crew-map" id="crew-map"></div>
               <div style="font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
                 <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a9eff;flex-shrink:0;"></span> You &nbsp;
                 <span id="cmap-crew-legend" style="display:flex;align-items:center;gap:6px;"></span>
@@ -1935,49 +1889,16 @@
     var firstStop = (plan.stops || [])[0];
     var firstVenueName = firstStop ? firstStop.place : null;
 
-    // You (organiser)
-    var initials = getInitials(plan.owner_name || 'You');
-    crew.innerHTML += makeCrewRow({
-      initials: initials,
-      name: plan.owner_name || 'You',
-      gradient: 'linear-gradient(135deg,#c4a882,#e8d5a3)',
-      prox: 'at',
-      proxLabel: firstVenueName ? 'At ' + truncate(firstVenueName, 14) : 'At venue',
-      venueRef: firstVenueName,
-      barPct: 100,
-      barColor: 'var(--green)'
-    });
-
-    // Simulated crew statuses (in production from Supabase Realtime)
-    var CREW_SIMS = [
-      { color: 'linear-gradient(135deg,#7dba8a,#5da870)', prox: 'at',    proxLabel: firstVenueName ? 'At ' + truncate(firstVenueName,14) : 'At venue', venueRef: firstVenueName, barPct: 100, barColor: 'var(--green)' },
-      { color: 'linear-gradient(135deg,#e8a3c4,#d482b0)', prox: 'close', proxLabel: '4 min away',    venueRef: firstVenueName, barPct: 72,  barColor: 'var(--accent)' },
-      { color: 'linear-gradient(135deg,#a3c4e8,#82b0d4)', prox: 'away',  proxLabel: '12 min away',   venueRef: firstVenueName, barPct: 35,  barColor: '#777' },
-      { color: 'linear-gradient(135deg,#c4a3e8,#a882d4)', prox: 'close', proxLabel: '2 min away',    venueRef: firstVenueName, barPct: 88,  barColor: 'var(--accent)' },
-      { color: 'linear-gradient(135deg,#e8d5a3,#c4a882)', prox: 'off',   proxLabel: 'Location off',  venueRef: null,           barPct: 0,   barColor: '#555' },
-    ];
-
-    (plan.invitees || []).forEach(function(email, idx) {
-      var sim = CREW_SIMS[idx % CREW_SIMS.length];
-      crew.innerHTML += makeCrewRow({
-        initials: email[0].toUpperCase(),
-        name: email,
-        gradient: sim.color,
-        prox: sim.prox,
-        proxLabel: sim.proxLabel,
-        venueRef: sim.venueRef,
-        barPct: sim.barPct,
-        barColor: sim.barColor
-      });
-    });
-
-    document.getElementById('crew-label').textContent = 'Crew · ' + (1 + (plan.invitees||[]).length) + ' people';
+    // Render crew with real location data (or placeholders if none yet)
+    renderCrewWithLocations();
 
     currentPlan = plan;
     initDragDrop();
     renderCrewMap(stops);
     // Restore vote renders
     (stops || []).forEach(function(_,i){ renderStopVote(i); });
+    // Subscribe to live crew locations if plan has an ID
+    if (plan.id) subscribeCrewLocations(plan.id);
   }
 
   function makeStopRow(stop, i, total) {
@@ -2246,54 +2167,105 @@
     }
   }
 
-  // ── Crew map: place venue pins from stops ──
-  var CREW_POSITIONS = [
-    { name: 'Alex', color: '#7dba8a', x: 38, y: 44 },
-    { name: 'Maya', color: '#e8a3c4', x: 61, y: 58 },
-    { name: 'Tom',  color: '#a3c4e8', x: 44, y: 63 },
-  ];
+  // ── Leaflet crew map ──
+  var _leafletMap = null;
+  var _leafletMarkers = [];        // venue + crew markers
+  var _leafletYouMarker = null;
+  var CREW_DOT_COLORS = ['#7dba8a','#e8a3c4','#a3c4e8','#c4a3e8','#e8c4a3'];
+
+  function initLeafletMap() {
+    if (_leafletMap) return;
+    var el = document.getElementById('crew-map');
+    if (!el || typeof L === 'undefined') return;
+    _leafletMap = L.map('crew-map', {
+      zoomControl: false,
+      attributionControl: true,
+      dragging: true,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: true
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OSM',
+      maxZoom: 18
+    }).addTo(_leafletMap);
+    // Default view — London centre, will be recentred when data loads
+    _leafletMap.setView([51.505, -0.09], 14);
+  }
+
+  function clearLeafletMarkers() {
+    _leafletMarkers.forEach(function(m) { _leafletMap.removeLayer(m); });
+    _leafletMarkers = [];
+    if (_leafletYouMarker) { _leafletMap.removeLayer(_leafletYouMarker); _leafletYouMarker = null; }
+  }
 
   function renderCrewMap(stops) {
-    var pinsEl = document.getElementById('cmap-pins');
-    var dotsEl = document.getElementById('cmap-crew-dots');
-    var legendEl = document.getElementById('cmap-crew-legend');
-    if (!pinsEl) return;
+    if (typeof L === 'undefined') return;
+    initLeafletMap();
+    clearLeafletMarkers();
 
-    pinsEl.innerHTML = '';
-    // Scatter stop pins across map canvas
-    var positions = [
-      {x:22,y:28},{x:55,y:18},{x:72,y:38},{x:35,y:72},{x:78,y:65},{x:18,y:55}
-    ];
-    stops.forEach(function(stop, i) {
-      var pos = positions[i % positions.length];
-      var pin = document.createElement('div');
-      pin.className = 'cmap-pin';
-      pin.style.left = pos.x + '%';
-      pin.style.top = pos.y + '%';
-      var name = stop.place || 'Stop';
-      pin.innerHTML = '<div class="cmap-pin-body">' + escHtml(name.length > 12 ? name.slice(0,11)+'…' : name) + '</div>';
-      pinsEl.appendChild(pin);
+    var bounds = [];
+
+    // Venue pins for stops that have coordinates
+    stops.forEach(function(stop) {
+      if (!stop.lat || !stop.lng) return;
+      var name = truncate(stop.place || 'Stop', 16);
+      var icon = L.divIcon({
+        className: '',
+        html: '<div class="lmap-venue-pin">' + escHtml(name) + '</div>',
+        iconAnchor: [0, 28]
+      });
+      var m = L.marker([stop.lat, stop.lng], { icon: icon }).addTo(_leafletMap);
+      _leafletMarkers.push(m);
+      bounds.push([stop.lat, stop.lng]);
     });
 
-    // Crew dots
-    if (dotsEl) {
-      dotsEl.innerHTML = '';
-      CREW_POSITIONS.forEach(function(c) {
-        var dot = document.createElement('div');
-        dot.className = 'cmap-crew-dot';
-        dot.style.left = c.x + '%';
-        dot.style.top = c.y + '%';
-        dot.style.background = c.color;
-        dotsEl.appendChild(dot);
-      });
+    // Your dot if sharing
+    if (liveLocActive && window._myLat) {
+      var youIcon = L.divIcon({ className: '', html: '<div class="lmap-you-dot"></div>', iconAnchor: [7, 7] });
+      _leafletYouMarker = L.marker([window._myLat, window._myLng], { icon: youIcon, zIndexOffset: 1000 }).addTo(_leafletMap);
+      bounds.push([window._myLat, window._myLng]);
     }
 
-    // Legend
+    // Crew dots from live location data
+    var gradients = CREW_DOT_COLORS;
+    Object.values(crewLocations).forEach(function(loc, idx) {
+      var color = gradients[idx % gradients.length];
+      var icon = L.divIcon({
+        className: '',
+        html: '<div class="lmap-crew-dot" style="background:' + color + ';"></div>',
+        iconAnchor: [6, 6]
+      });
+      var m = L.marker([loc.lat, loc.lng], { icon: icon })
+        .bindTooltip(truncate(loc.name, 14), { permanent: false, direction: 'top', className: 'lmap-tooltip' })
+        .addTo(_leafletMap);
+      _leafletMarkers.push(m);
+      bounds.push([loc.lat, loc.lng]);
+    });
+
+    // Fit map to all markers, or default to first stop, or London
+    if (bounds.length > 1) {
+      _leafletMap.fitBounds(bounds, { padding: [32, 32], maxZoom: 16 });
+    } else if (bounds.length === 1) {
+      _leafletMap.setView(bounds[0], 15);
+    } else if (stops.length > 0 && stops[0].address) {
+      // No coords yet — show a note
+    }
+
+    // Legend — crew from crewLocations
+    var legendEl = document.getElementById('cmap-crew-legend');
     if (legendEl) {
-      legendEl.innerHTML = CREW_POSITIONS.map(function(c) {
-        return '<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:' + c.color + ';flex-shrink:0;display:inline-block;"></span><span style="font-size:11px;color:var(--muted);">' + c.name + '</span></span>';
+      legendEl.innerHTML = Object.values(crewLocations).map(function(loc, idx) {
+        var color = CREW_DOT_COLORS[idx % CREW_DOT_COLORS.length];
+        return '<span style="display:inline-flex;align-items:center;gap:4px;">'
+          + '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;display:inline-block;"></span>'
+          + '<span style="font-size:11px;color:var(--muted);">' + escHtml(truncate(loc.name, 10)) + '</span>'
+          + '</span>';
       }).join('');
     }
+
+    // Invalidate size in case the container was hidden when map was init'd
+    setTimeout(function() { if (_leafletMap) _leafletMap.invalidateSize(); }, 100);
   }
 
   function truncate(str, n) {
@@ -2408,10 +2380,139 @@
 
   function requestJoinPlan() { toast('Join request sent ✓'); closeFriendPlan(); }
 
-  // ── Live location toggle ──
+  // ═══════════════════════════════════════════════════════
+  // SUPABASE SETUP — run this SQL once in your dashboard:
+  //
+  // create table crew_locations (
+  //   id uuid default gen_random_uuid() primary key,
+  //   plan_id uuid references plans(id) on delete cascade,
+  //   user_id uuid references auth.users(id) on delete cascade,
+  //   user_name text,
+  //   lat double precision,
+  //   lng double precision,
+  //   updated_at timestamptz default now(),
+  //   unique(plan_id, user_id)
+  // );
+  // alter publication supabase_realtime add table crew_locations;
+  // alter table crew_locations enable row level security;
+  // create policy "read" on crew_locations for select using (true);
+  // create policy "insert own" on crew_locations for insert with check (auth.uid() = user_id);
+  // create policy "update own" on crew_locations for update using (auth.uid() = user_id);
+  // ═══════════════════════════════════════════════════════
+
+  // ── Live crew locations store { userId: { name, lat, lng, updatedAt } } ──
+  var crewLocations = {};
   var liveLocActive = false;
   var liveLocWatchId = null;
+  var realtimeChannel = null;
 
+  // ── Haversine distance in metres ──
+  function haversineMetres(lat1, lng1, lat2, lng2) {
+    var R = 6371000;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2)
+          + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180)
+          * Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function proximityFromMetres(metres) {
+    if (metres === null) return { prox: 'off', label: 'Location off', barPct: 0, barColor: '#555' };
+    if (metres <= 80)    return { prox: 'at',    label: 'At venue',                      barPct: 100, barColor: 'var(--green)' };
+    if (metres <= 300)   return { prox: 'close', label: Math.round(metres) + 'm away',   barPct: 80,  barColor: 'var(--accent)' };
+    if (metres <= 1000)  return { prox: 'close', label: Math.round(metres / 80) + ' min away', barPct: 55, barColor: 'var(--accent)' };
+    var km = (metres / 1000).toFixed(1);
+    var mins = Math.round(metres / 80);
+    return { prox: 'away', label: km + 'km · ~' + mins + ' min', barPct: Math.max(5, Math.round(300 / (metres / 1000))), barColor: '#777' };
+  }
+
+  // ── Subscribe to crew location updates for current plan ──
+  function subscribeCrewLocations(planId) {
+    if (realtimeChannel) sb.removeChannel(realtimeChannel);
+    // Load existing locations first
+    sb.from('crew_locations').select('*').eq('plan_id', planId).then(function(res) {
+      if (res.data) {
+        res.data.forEach(function(row) {
+          crewLocations[row.user_id] = { name: row.user_name, lat: row.lat, lng: row.lng, updatedAt: row.updated_at };
+        });
+        renderCrewWithLocations();
+      }
+    });
+    // Then listen for real-time changes
+    realtimeChannel = sb.channel('crew-loc-' + planId)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'crew_locations',
+        filter: 'plan_id=eq.' + planId
+      }, function(payload) {
+        var row = payload.new || payload.old;
+        if (payload.eventType === 'DELETE') {
+          delete crewLocations[row.user_id];
+        } else {
+          crewLocations[row.user_id] = { name: row.user_name, lat: row.lat, lng: row.lng, updatedAt: row.updated_at };
+        }
+        renderCrewWithLocations();
+      })
+      .subscribe();
+  }
+
+  // ── Re-render crew rows with real distances ──
+  function renderCrewWithLocations() {
+    if (!currentPlan) return;
+    var crew = document.getElementById('crew-list');
+    if (!crew) return;
+    var stops = currentPlan.stops || [];
+    // Use first stop with a lat/lng stored, else null
+    var refStop = stops.find(function(s) { return s.lat && s.lng; }) || stops[0] || null;
+    var gradients = ['linear-gradient(135deg,#7dba8a,#5da870)','linear-gradient(135deg,#e8a3c4,#d482b0)','linear-gradient(135deg,#a3c4e8,#82b0d4)','linear-gradient(135deg,#c4a3e8,#a882d4)','linear-gradient(135deg,#e8c4a3,#d4a882)'];
+
+    crew.innerHTML = '';
+
+    // You (organiser — use your own location if sharing)
+    var ownerProx = { prox: 'at', label: refStop ? 'At ' + truncate(refStop.place, 14) : 'Organiser', barPct: 100, barColor: 'var(--green)' };
+    if (liveLocActive && window._myLat) {
+      var myDist = refStop && refStop.lat ? haversineMetres(window._myLat, window._myLng, refStop.lat, refStop.lng) : null;
+      ownerProx = proximityFromMetres(myDist);
+      if (ownerProx.prox === 'at' && refStop) ownerProx.label = 'At ' + truncate(refStop.place, 14);
+    }
+    crew.innerHTML += makeCrewRow({
+      initials: getInitials(currentPlan.owner_name || 'You'),
+      name: currentPlan.owner_name || 'You',
+      gradient: 'linear-gradient(135deg,#c4a882,#e8d5a3)',
+      prox: ownerProx.prox, proxLabel: ownerProx.label,
+      venueRef: refStop ? refStop.place : null,
+      barPct: ownerProx.barPct, barColor: ownerProx.barColor
+    });
+
+    // Invitees — match to crewLocations by name/email
+    (currentPlan.invitees || []).forEach(function(email, idx) {
+      // Find matching location entry by user_name
+      var locEntry = Object.values(crewLocations).find(function(l) { return l.name === email || l.name === email.split('@')[0]; });
+      var proxInfo;
+      if (locEntry && refStop && refStop.lat) {
+        var dist = haversineMetres(locEntry.lat, locEntry.lng, refStop.lat, refStop.lng);
+        proxInfo = proximityFromMetres(dist);
+        if (proxInfo.prox === 'at') proxInfo.label = 'At ' + truncate(refStop.place, 14);
+      } else if (locEntry) {
+        proxInfo = { prox: 'away', label: 'Location shared', barPct: 30, barColor: '#777' };
+      } else {
+        proxInfo = { prox: 'off', label: 'Location off', barPct: 0, barColor: '#555' };
+      }
+      crew.innerHTML += makeCrewRow({
+        initials: email[0].toUpperCase(),
+        name: email,
+        gradient: gradients[idx % gradients.length],
+        prox: proxInfo.prox, proxLabel: proxInfo.label,
+        venueRef: refStop ? refStop.place : null,
+        barPct: proxInfo.barPct, barColor: proxInfo.barColor
+      });
+    });
+
+    document.getElementById('crew-label').textContent = 'Crew · ' + (1 + (currentPlan.invitees||[]).length) + ' people';
+    renderCrewMap(currentPlan.stops || []);
+  }
+
+  // ── Live location toggle — now broadcasts to Supabase ──
   function toggleLiveLocation() {
     var btn = document.getElementById('live-loc-btn');
     var dot = document.getElementById('live-loc-dot');
@@ -2419,13 +2520,23 @@
 
     if (!liveLocActive) {
       if (!navigator.geolocation) { toast('Location not supported on this device'); return; }
-      navigator.geolocation.getCurrentPosition(function() {
+      navigator.geolocation.getCurrentPosition(async function(pos) {
         liveLocActive = true;
-        liveLocWatchId = navigator.geolocation.watchPosition(function(pos) {
-          // In a real app, broadcast pos.coords to crew via Supabase realtime
-          console.log('Live location:', pos.coords.latitude, pos.coords.longitude);
-        }, null, { enableHighAccuracy: true, maximumAge: 10000 });
-        // Update UI
+        window._myLat = pos.coords.latitude;
+        window._myLng = pos.coords.longitude;
+
+        // Broadcast immediately
+        await broadcastLocation(pos.coords.latitude, pos.coords.longitude);
+
+        liveLocWatchId = navigator.geolocation.watchPosition(async function(p) {
+          window._myLat = p.coords.latitude;
+          window._myLng = p.coords.longitude;
+          await broadcastLocation(p.coords.latitude, p.coords.longitude);
+          renderCrewWithLocations();
+          renderCrewMap((currentPlan && currentPlan.stops) || []); // update map
+        }, null, { enableHighAccuracy: true, maximumAge: 5000 });
+
+        // Update button UI
         btn.style.borderColor = 'var(--green)';
         btn.style.color = 'var(--green)';
         btn.style.background = 'rgba(125,186,138,0.08)';
@@ -2434,21 +2545,41 @@
         dot.style.animation = 'pulse-dot 1.8s ease-in-out infinite';
         label.textContent = 'Live · sharing';
         toast('📍 Sharing live location with crew');
+        renderCrewWithLocations();
       }, function() {
         toast('Location access denied — check settings');
       });
     } else {
       liveLocActive = false;
+      window._myLat = null; window._myLng = null;
       if (liveLocWatchId !== null) { navigator.geolocation.clearWatch(liveLocWatchId); liveLocWatchId = null; }
-      btn.style.borderColor = 'var(--border)';
-      btn.style.color = 'var(--muted)';
-      btn.style.background = 'var(--surface2)';
-      dot.style.background = 'var(--muted)';
-      dot.style.boxShadow = 'none';
-      dot.style.animation = 'none';
+      btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--muted)';
+      btn.style.background = 'var(--surface2)'; dot.style.background = 'var(--muted)';
+      dot.style.boxShadow = 'none'; dot.style.animation = 'none';
       label.textContent = 'Share location';
       toast('Location sharing off');
+      // Remove from DB
+      if (currentPlan && currentPlan.id) {
+        sb.auth.getUser().then(function(res) {
+          if (res.data.user) sb.from('crew_locations').delete().eq('plan_id', currentPlan.id).eq('user_id', res.data.user.id).then(function(){});
+        });
+      }
+      renderCrewWithLocations();
     }
+  }
+
+  async function broadcastLocation(lat, lng) {
+    if (!currentPlan || !currentPlan.id) return;
+    var { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from('crew_locations').upsert({
+      plan_id: currentPlan.id,
+      user_id: user.id,
+      user_name: user.user_metadata?.full_name || user.email,
+      lat: lat,
+      lng: lng,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'plan_id,user_id' });
   }
 
   async function checkPlanInURL() {
