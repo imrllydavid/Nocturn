@@ -2171,7 +2171,7 @@
       ? currentPlan.stops : null;
 
     if (stops) {
-      if (label) label.textContent = currentPlan.name || 'Tonight's plan';
+      if (label) label.textContent = currentPlan.name || "Tonight's plan";
       list.innerHTML = stops.map(function(stop, i) {
         var icon = STOP_ICONS[i % STOP_ICONS.length];
         var time = stop.time ? formatTime(stop.time) : '';
@@ -2192,7 +2192,8 @@
         { icon:'🎵', name:'Fabric',meta:'Club · Farringdon',dist:'0.5 mi',crowd:'Busy tonight',v:'Fabric',       sub:'Club · Farringdon',     h:'10pm – 6am', p:'£20 advance',  ab:'Drum & bass night with four rooms.',        addr:'10 Charterhouse St, London EC1M 6AA' },
         { icon:'🍸', name:'ECC Mayfair',meta:'Bar · Free entry',dist:'0.8 mi',crowd:'Quiet now',v:'ECC Mayfair',sub:'Cocktail Bar · Mayfair', h:'5pm – 1am',  p:'Free entry',   ab:'Prohibition-era cocktail bar.',             addr:'9 Conduit St, London W1S 2XG' },
       ].map(function(r) {
-        return '<div class="nearby-row sel" onclick="modal('' + r.v + '','' + r.sub + '','' + r.h + '','' + r.p + '','' + r.ab + '','' + r.addr + '')">' +
+        var onclick = "modal('" + r.v + "','" + r.sub + "','" + r.h + "','" + r.p + "','" + r.ab + "','" + r.addr + "')";
+        return '<div class="nearby-row sel" onclick="' + onclick + '">' +
           '<div class="nb-icon">' + r.icon + '</div>' +
           '<div class="nb-info"><div class="nb-name">' + r.name + '</div><div class="nb-meta">' + r.meta + '</div></div>' +
           '<div class="nb-right"><div class="nb-dist">' + r.dist + '</div><div class="nb-crowd">' + r.crowd + '</div></div>' +
