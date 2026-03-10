@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nocturn — Nightlife Coordination</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0ede8;
+    --muted: #777;
+    --accent: #e8d5a3;
+    --accent2: #c4a882;
+    --green: #7dba8a;
+    --red: #c97070;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow: hidden;
+  }
+
+  /* ── SHELL ── */
+  .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+    z-index: 20;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; cursor: pointer;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .icon-btn:hover { border-color: var(--accent); }
+
+  .notif-dot {
+    position: absolute; top: 7px; right: 7px;
+    width: 6px; height: 6px;
+    border-radius: 50%; background: var(--accent);
+    border: 1.5px solid var(--bg);
+  }
+
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; color: #0a0a0a;
+    cursor: pointer;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .page.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    display: flex;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 14px 0 12px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: color 0.2s;
+    position: relative;
+    text-transform: uppercase;
+  }
+
+  .nav-btn.active { color: var(--accent); }
+
+  .nav-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 28px; height: 2px;
+    background: var(--accent);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .nav-icon { font-size: 22px; line-height: 1; }
+
+  /* ════════════ MAP PAGE ════════════ */
+  #page-map {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Fake map background */
+  .map-canvas {
+    position: absolute;
+    inset: 0;
+    background: #0d1018;
+    overflow: hidden;
+  }
+
+  /* Grid */
+  .map-canvas::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Diagonal accent lines to add depth */
+  .map-canvas::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 12px 12px;
+  }
+
+  .road-h {
+    position: absolute;
+    left: 0; right: 0;
+    background: rgba(255,255,255,0.055);
+    border-radius: 1px;
+  }
+  .road-v {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: rgba(255,255,255,0.055);
+    border-radius: 1px;
+  }
+  .road-thick {
+    background: rgba(255,255,255,0.09) !important;
+  }
+
+  /* blocks */
+  .block {
+    position: absolute;
+    background: rgba(255,255,255,0.02);
+    border-radius: 3px;
+  }
+
+  .my-dot {
+    position: absolute;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #4a9eff;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 8px rgba(74,158,255,0.18), 0 2px 8px rgba(0,0,0,0.5);
+    z-index: 4;
+    transform: translate(-50%, -50%);
+  }
+
+  .pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    z-index: 5;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .pin:hover { transform: translate(-50%, -100%) scale(1.08); }
+
+  .pin-body {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 6px 12px;
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 400;
+    white-space: nowrap;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+    position: relative;
+  }
+
+  .pin-body.hot {
+    background: rgba(20,16,8,0.95);
+    border-color: rgba(232,213,163,0.35);
+    color: var(--accent);
+  }
+
+  .pin-body::after {
+    content: '';
+    position: absolute;
+    bottom: -6px; left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--surface);
+    border-bottom: none;
+  }
+  .pin-body.hot::after { border-top-color: rgba(20,16,8,0.95); }
+
+  .pin-circle {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .pin-body.hot .pin-circle { background: var(--accent); }
+  .pin-body.grn .pin-circle { background: var(--green); }
+
+  .map-ctrl-group {
+    position: absolute;
+    top: 16px; right: 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    z-index: 6;
+  }
+
+  .map-ctrl {
+    width: 38px; height: 38px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    transition: border-color .2s;
+  }
+  .map-ctrl:hover { border-color: var(--accent); }
+
+  /* Bottom sheet */
+  .sheet {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 28px 20px;
+    flex-shrink: 0;
+  }
+
+  .sheet-bar {
+    width: 36px; height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 14px;
+  }
+
+  .sheet-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .nearby-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .2s;
+    margin-bottom: 6px;
+  }
+  .nearby-row:last-child { margin-bottom: 0; }
+  .nearby-row:hover, .nearby-row.sel {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .nb-icon {
+    font-size: 22px;
+    width: 44px; height: 44px;
+    background: var(--surface2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nb-info { flex: 1; }
+  .nb-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .nb-meta { font-size: 12px; color: var(--muted); }
+  .nb-right { text-align: right; }
+  .nb-dist { font-size: 12px; color: var(--accent); font-weight: 500; }
+  .nb-crowd { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ════════════ DISCOVER PAGE ════════════ */
+  #page-discover { padding: 0 28px 28px; }
+
+  .filter-strip {
+    display: flex; gap: 8px;
+    padding: 16px 0 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-strip::-webkit-scrollbar { display: none; }
+
+  .pill {
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .pill.on, .pill:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sec-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .ecard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .ecard:hover { border-color: rgba(232,213,163,0.25); transform: translateY(-1px); }
+
+  .ec-icon {
+    font-size: 26px;
+    width: 52px; height: 52px;
+    background: var(--surface2);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ec-info { flex: 1; min-width: 0; }
+  .ec-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ec-venue { font-size: 12px; color: var(--muted); margin-bottom: 7px; }
+  .ec-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+
+  .tag {
+    font-size: 10px;
+    padding: 2px 9px;
+    border-radius: 5px;
+    background: var(--surface2);
+    color: var(--muted);
+  }
+  .tag.a { background: rgba(232,213,163,0.1); color: var(--accent); }
+  .tag.g { background: rgba(125,186,138,0.1); color: var(--green); }
+
+  .ec-right { text-align: right; flex-shrink: 0; }
+  .ec-time { font-size: 13px; color: var(--accent); font-weight: 500; }
+  .faces { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .face {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    margin-left: -6px;
+    font-size: 8px; display: flex; align-items: center; justify-content: center;
+    color: #0a0a0a; font-weight: 700;
+  }
+  .face:first-child { margin-left: 0; }
+
+  /* ════════════ PLAN PAGE ════════════ */
+  #page-plan { padding: 24px 28px 28px; }
+
+  .plan-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .pcard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 14px;
+  }
+
+  .pcard-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .tl { display: flex; flex-direction: column; }
+
+  .tl-row { display: flex; gap: 14px; }
+
+  .tl-spine {
+    display: flex; flex-direction: column; align-items: center;
+    width: 10px; flex-shrink: 0; margin-top: 4px;
+  }
+  .tl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  .tl-bar { width: 1px; flex: 1; background: var(--border); min-height: 16px; margin-top: 4px; }
+  .tl-row:last-child .tl-bar { display: none; }
+
+  .tl-body { flex: 1; padding-bottom: 18px; }
+  .tl-row:last-child .tl-body { padding-bottom: 0; }
+  .tl-t { font-size: 10px; color: var(--accent); font-weight: 500; letter-spacing: .06em; margin-bottom: 2px; }
+  .tl-n { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .tl-d { font-size: 12px; color: var(--muted); }
+
+  .add-btn {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    cursor: pointer; padding: 10px 0 2px;
+    border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: color .2s; margin-top: 6px;
+  }
+  .add-btn:hover { color: var(--accent); }
+
+  .crew-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+  .crew-row:last-child { margin-bottom: 0; }
+  .crew-l { display: flex; align-items: center; gap: 11px; }
+  .cava { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #0a0a0a; }
+  .cn { font-size: 13px; font-weight: 500; }
+  .cs { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; }
+  .b-in { background: rgba(125,186,138,0.12); color: var(--green); border: 1px solid rgba(125,186,138,0.22); }
+  .b-mb { background: rgba(232,213,163,0.1); color: var(--accent); border: 1px solid rgba(232,213,163,0.18); }
+  .b-no { background: rgba(201,112,112,0.1); color: var(--red); border: 1px solid rgba(201,112,112,0.2); }
+
+  .share-strip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px; color: var(--muted);
+    transition: border-color .2s;
+  }
+  .share-strip:hover { border-color: var(--accent); }
+  .share-strip span:last-child { margin-left: auto; font-size: 11px; color: var(--accent); }
+
+  /* ════════════ MEET PAGE ════════════ */
+  #page-meet { padding: 24px 28px 28px; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 16px;
+  }
+  .stat-ic { font-size: 20px; margin-bottom: 10px; }
+  .stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 500; }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .feed-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .feed-hd {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; font-weight: 500;
+  }
+  .live-badge {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--green);
+  }
+  .live-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%; background: var(--green);
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .feed-entry {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .feed-entry:last-child { border-bottom: none; }
+  .fava { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: #0a0a0a; flex-shrink: 0; margin-top: 1px; }
+  .ftxt { flex: 1; line-height: 1.55; }
+  .ftxt b { font-weight: 500; }
+  .fts { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ════════════ PAGE HEADERS ════════════ */
+  .pg-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 4px; }
+  .pg-sub { font-size: 13px; color: var(--muted); }
+
+  /* ════════════ MODAL ════════════ */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    width: 100%; max-width: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    padding: 20px 28px 40px;
+    transform: translateY(30px);
+    transition: transform .28s;
+    position: relative;
+  }
+  .overlay.open .modal { transform: translateY(0); }
+
+  .mhandle { width: 36px; height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+  .mtitle { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 3px; }
+  .msub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .mrow {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .mrow:last-of-type { border-bottom: none; }
+  .mic { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+  .mlbl { color: var(--muted); flex: 0 0 72px; font-size: 13px; }
+  .mval { color: var(--text); }
+
+  .mbtns { display: flex; gap: 10px; margin-top: 22px; }
+  .btn {
+    flex: 1; padding: 13px;
+    border-radius: 12px;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; border: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: all .2s;
+  }
+  .btn-p { background: var(--accent); color: #0a0a0a; }
+  .btn-p:hover { background: var(--accent2); }
+  .btn-s { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-s:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ════════════ TOAST ════════════ */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-size: 13px;
+    z-index: 300;
+    opacity: 0;
+    transition: all .25s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="logo">Nocturn</div>
+    <div class="topbar-right">
+      <div class="icon-btn">🔔<span class="notif-dot"></span></div>
+      <div class="avatar">JS</div>
+    </div>
+  </header>
+
+  <!-- PAGES -->
+  <div class="content">
+
+    <!-- ── MAP ── -->
+    <div id="page-map" class="page active" style="display:flex;flex-direction:column;">
+      <div class="map-wrap" style="flex:1;position:relative;">
+        <div class="map-canvas">
+          <!-- Thick roads -->
+          <div class="road-h road-thick" style="top:38%;height:5px;"></div>
+          <div class="road-h road-thick" style="top:62%;height:5px;"></div>
+          <div class="road-v road-thick" style="left:35%;width:5px;"></div>
+          <div class="road-v road-thick" style="left:65%;width:5px;"></div>
+          <!-- Thin roads -->
+          <div class="road-h" style="top:22%;height:2px;"></div>
+          <div class="road-h" style="top:50%;height:2px;"></div>
+          <div class="road-h" style="top:78%;height:2px;"></div>
+          <div class="road-v" style="left:20%;width:2px;"></div>
+          <div class="road-v" style="left:50%;width:2px;"></div>
+          <div class="road-v" style="left:80%;width:2px;"></div>
+          <!-- Blocks -->
+          <div class="block" style="left:36%;top:23%;width:12%;height:14%;"></div>
+          <div class="block" style="left:66%;top:39%;width:12%;height:21%;"></div>
+          <div class="block" style="left:21%;top:39%;width:12%;height:21%;"></div>
+          <div class="block" style="left:51%;top:63%;width:12%;height:13%;"></div>
+          <div class="block" style="left:36%;top:63%;width:12%;height:13%;"></div>
+          <div class="block" style="left:66%;top:63%;width:12%;height:13%;"></div>
+          <!-- User location -->
+          <div class="my-dot" style="left:50%;top:50%;"></div>
+          <!-- Venue pins -->
+          <div class="pin" style="left:27%;top:37%;" onclick="modal('Fabric','Club · Farringdon','10pm – 6am','£20 advance','Drum & bass night with four rooms. Dense crowds expected after midnight.')"><div class="pin-body hot"><div class="pin-circle"></div>Fabric</div></div>
+          <div class="pin" style="left:63%;top:28%;" onclick="modal('Aviary','Rooftop · Shoreditch','6pm – 2am','£15 entry','Stunning skyline views. Cocktail-forward menu, DJ sets from 9pm.')"><div class="pin-body"><div class="pin-circle"></div>Aviary</div></div>
+          <div class="pin" style="left:50%;top:58%;" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.')"><div class="pin-body hot"><div class="pin-circle"></div>XOYO</div></div>
+          <div class="pin" style="left:77%;top:45%;" onclick="modal('Ronnie Scott\'s','Live Jazz · Soho','8pm – 3am','£35 members','Legendary venue. Tonight: late-night quartet with open bar after midnight.')"><div class="pin-body"><div class="pin-circle"></div>Ronnie Scott's</div></div>
+          <div class="pin" style="left:21%;top:64%;" onclick="modal('ECC Mayfair','Cocktail Bar · Mayfair','5pm – 1am','Free entry','Prohibition-era cocktail bar. Expert mixologists, no reservations needed.')"><div class="pin-body grn"><div class="pin-circle" style="background:var(--green)"></div>ECC</div></div>
+          <div class="pin" style="left:67%;top:71%;" onclick="modal('Sky Garden','Bar · City of London','6:30pm – 11pm','Free (book ahead)','London\'s highest public garden. Exceptional views, advance booking required.')"><div class="pin-body"><div class="pin-circle"></div>Sky Garden</div></div>
+          <!-- Controls -->
+          <div class="map-ctrl-group">
+            <div class="map-ctrl" onclick="toast('Zoomed in')">＋</div>
+            <div class="map-ctrl" onclick="toast('Zoomed out')">－</div>
+            <div class="map-ctrl" onclick="toast('Locating you…')">⊕</div>
+          </div>
+        </div>
+      </div>
+      <!-- Sheet -->
+      <div class="sheet">
+        <div class="sheet-bar"></div>
+        <div class="sheet-label">Nearby tonight</div>
+        <div class="nearby-row sel" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.')">
+          <div class="nb-icon">🔊</div>
+          <div class="nb-info"><div class="nb-name">XOYO</div><div class="nb-meta">Club · Islington · 5 friends going</div></div>
+          <div class="nb-right"><div class="nb-dist">0.3 mi</div><div class="nb-crowd">Low queue</div></div>
+        </div>
+        <div class="nearby-row" onclick="modal('Fabric','Club · Farringdon','10pm – 6am','£20 advance','Drum & bass night with four rooms. Dense crowds expected after midnight.')">
+          <div class="nb-icon">🎵</div>
+          <div class="nb-info"><div class="nb-name">Fabric</div><div class="nb-meta">Club · Farringdon · 3 friends going</div></div>
+          <div class="nb-right"><div class="nb-dist">0.5 mi</div><div class="nb-crowd">Busy tonight</div></div>
+        </div>
+        <div class="nearby-row" onclick="modal('ECC Mayfair','Cocktail Bar · Mayfair','5pm – 1am','Free entry','Prohibition-era cocktail bar. Expert mixologists, no reservations needed.')">
+          <div class="nb-icon">🍸</div>
+          <div class="nb-info"><div class="nb-name">ECC Mayfair</div><div class="nb-meta">Bar · Free entry</div></div>
+          <div class="nb-right"><div class="nb-dist">0.8 mi</div><div class="nb-crowd">Quiet now</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DISCOVER ── -->
+    <div id="page-discover" class="page">
+      <div class="filter-strip" style="padding-left:28px;padding-right:28px;">
+        <button class="pill on" onclick="fp(this)">All</button>
+        <button class="pill" onclick="fp(this)">Clubs</button>
+        <button class="pill" onclick="fp(this)">Bars</button>
+        <button class="pill" onclick="fp(this)">Live Music</button>
+        <button class="pill" onclick="fp(this)">Rooftops</button>
+        <button class="pill" onclick="fp(this)">Late Night</button>
+      </div>
+      <div style="padding:0 28px;">
+        <div class="sec-label">Tonight · 47 events near you</div>
+        <div class="cards-grid">
+          <div class="ecard" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.')"><div class="ec-icon">🔊</div><div class="ec-info"><div class="ec-name">XOYO Residents</div><div class="ec-venue">XOYO · Islington</div><div class="ec-tags"><span class="tag a">Club</span><span class="tag g">5 going</span></div></div><div class="ec-right"><div class="ec-time">11pm</div><div class="faces"><div class="face">M</div><div class="face">A</div><div class="face">T</div></div></div></div>
+          <div class="ecard" onclick="modal('Fabric','Club · Farringdon','10pm – 6am','£20 advance','Drum & bass night with four rooms. Dense crowds expected after midnight.')"><div class="ec-icon">🎵</div><div class="ec-info"><div class="ec-name">Dark Matters: Fabric</div><div class="ec-venue">Fabric · Farringdon</div><div class="ec-tags"><span class="tag a">Club</span><span class="tag">3 going</span></div></div><div class="ec-right"><div class="ec-time">10pm</div><div class="faces"><div class="face">M</div><div class="face">A</div></div></div></div>
+          <div class="ecard" onclick="modal('Aviary','Rooftop · Shoreditch','6pm – 2am','£15 entry','Stunning skyline views. Cocktail-forward menu, DJ sets from 9pm.')"><div class="ec-icon">🌆</div><div class="ec-info"><div class="ec-name">Golden Hour Sessions</div><div class="ec-venue">Aviary · Shoreditch</div><div class="ec-tags"><span class="tag a">Rooftop</span></div></div><div class="ec-right"><div class="ec-time">6pm</div><div class="faces"><div class="face">T</div></div></div></div>
+          <div class="ecard" onclick="modal('Ronnie Scott\'s','Live Jazz · Soho','8pm – 3am','£35 members','Legendary venue. Tonight: late-night quartet with open bar after midnight.')"><div class="ec-icon">🎷</div><div class="ec-info"><div class="ec-name">Late Night Jazz</div><div class="ec-venue">Ronnie Scott's · Soho</div><div class="ec-tags"><span class="tag a">Live Music</span></div></div><div class="ec-right"><div class="ec-time">8pm</div><div class="faces"><div class="face">K</div></div></div></div>
+          <div class="ecard" onclick="modal('ECC Mayfair','Cocktail Bar · Mayfair','5pm – 1am','Free entry','Prohibition-era cocktail bar. Expert mixologists, no reservations needed.')"><div class="ec-icon">🍸</div><div class="ec-info"><div class="ec-name">Prohibition Fridays</div><div class="ec-venue">ECC · Mayfair</div><div class="ec-tags"><span class="tag a">Bar</span><span class="tag g">Free</span></div></div><div class="ec-right"><div class="ec-time">5pm</div></div></div>
+          <div class="ecard" onclick="modal('Sky Garden','Bar · City of London','6:30pm – 11pm','Free (book ahead)','London\'s highest public garden. Exceptional views, advance booking required.')"><div class="ec-icon">🌿</div><div class="ec-info"><div class="ec-name">Sky Garden Fridays</div><div class="ec-venue">Sky Garden · City</div><div class="ec-tags"><span class="tag a">Rooftop</span><span class="tag">2 going</span></div></div><div class="ec-right"><div class="ec-time">6:30pm</div><div class="faces"><div class="face">K</div><div class="face">A</div></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PLAN ── -->
+    <div id="page-plan" class="page">
+      <div style="padding:24px 28px 0;">
+        <div class="pg-title">Tonight's Plan</div>
+        <div class="pg-sub">Friday Night Out · 6 people invited</div>
+      </div>
+      <div class="plan-grid" style="padding:0 28px 28px;">
+        <div>
+          <div class="pcard">
+            <div class="pcard-label">Itinerary</div>
+            <div class="tl">
+              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">7:00 PM</div><div class="tl-n">Pre-drinks at Lena's</div><div class="tl-d">House party · 12 Dunmore Rd</div></div></div>
+              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">9:30 PM</div><div class="tl-n">Aviary Rooftop</div><div class="tl-d">Cocktails & skyline · Shoreditch</div></div></div>
+              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">11:30 PM</div><div class="tl-n">XOYO</div><div class="tl-d">House & techno · Islington · £18</div></div></div>
+              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">3:00 AM</div><div class="tl-n">Late night food</div><div class="tl-d">TBD — Decide on the night</div></div></div>
+            </div>
+            <button class="add-btn" onclick="toast('Stop added ✓')"><span style="font-size:18px;line-height:1">+</span> Add a stop</button>
+          </div>
+        </div>
+        <div>
+          <div class="pcard">
+            <div class="pcard-label">Crew · 6 invited</div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a882,#e8d5a3)">JS</div><div><div class="cn">You</div><div class="cs">Organiser</div></div></div><span class="badge b-in">In</span></div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">MA</div><div><div class="cn">Marcus A.</div><div class="cs">Last seen 2h ago</div></div></div><span class="badge b-in">In</span></div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#e8a3c4,#d482b0)">TK</div><div><div class="cn">Tara K.</div><div class="cs">Replied 30m ago</div></div></div><span class="badge b-mb">Maybe</span></div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3e8c4,#82d4a3)">AH</div><div><div class="cn">Aisha H.</div><div class="cs">Viewed plan</div></div></div><span class="badge b-in">In</span></div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#e8c4a3,#d4a882)">KL</div><div><div class="cn">Kev L.</div><div class="cs">No response</div></div></div><span class="badge b-no">Out</span></div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a3e8,#a882d4)">PM</div><div><div class="cn">Priya M.</div><div class="cs">Joining from XOYO</div></div></div><span class="badge b-in">In</span></div>
+          </div>
+          <div class="share-strip" onclick="toast('Link copied ✓')"><span>🔗</span><span>Share plan with friends</span><span>Copy link</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MEET ── -->
+    <div id="page-meet" class="page">
+      <div style="padding:24px 28px 0;">
+        <div class="pg-title">Meet Up</div>
+        <div class="pg-sub">Real-time crew coordination</div>
+      </div>
+      <div class="stats-row" style="padding:0 28px;">
+        <div class="stat"><div class="stat-ic">📍</div><div class="stat-lbl">Meet Point</div><div class="stat-val" style="font-size:18px">XOYO</div><div class="stat-sub">Islington · Next stop</div></div>
+        <div class="stat"><div class="stat-ic">👥</div><div class="stat-lbl">Crew Status</div><div class="stat-val">4 / 5</div><div class="stat-sub">Tara en route</div></div>
+        <div class="stat"><div class="stat-ic">🚶</div><div class="stat-lbl">Tara's ETA</div><div class="stat-val">12 min</div><div class="stat-sub">From Angel tube</div></div>
+        <div class="stat"><div class="stat-ic">🌡</div><div class="stat-lbl">Queue Status</div><div class="stat-val" style="color:var(--green)">Low</div><div class="stat-sub">~10 min wait</div></div>
+      </div>
+      <div style="padding:0 28px 28px;">
+        <div class="feed-box">
+          <div class="feed-hd">Live Updates <span class="live-badge">Live</span></div>
+          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#e8c4a3,#d4a882)">TK</div><div><div class="ftxt"><b>Tara</b> is heading your way — ETA 12 min</div><div class="fts">Just now</div></div></div>
+          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">MA</div><div><div class="ftxt"><b>Marcus</b> arrived at XOYO</div><div class="fts">4 min ago</div></div></div>
+          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#c4a3e8,#a882d4)">PM</div><div><div class="ftxt"><b>Priya</b> checked in at XOYO 🎉</div><div class="fts">8 min ago</div></div></div>
+          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#a3e8c4,#82d4a3)">AH</div><div><div class="ftxt"><b>Aisha</b> voted to skip the queue — use the side door</div><div class="fts">11 min ago</div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('page-map',this)"><span class="nav-icon">🗺</span>Map</button>
+    <button class="nav-btn" onclick="showPage('page-discover',this)"><span class="nav-icon">✦</span>Discover</button>
+    <button class="nav-btn" onclick="showPage('page-plan',this)"><span class="nav-icon">📋</span>Plan</button>
+    <button class="nav-btn" onclick="showPage('page-meet',this)"><span class="nav-icon">📍</span>Meet Up</button>
+  </nav>
+
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="m-name"></div>
+    <div class="msub" id="m-venue"></div>
+    <div class="mrow"><span class="mic">🕐</span><span class="mlbl">Hours</span><span class="mval" id="m-hours"></span></div>
+    <div class="mrow"><span class="mic">💳</span><span class="mlbl">Entry</span><span class="mval" id="m-price"></span></div>
+    <div class="mrow"><span class="mic">📝</span><span class="mlbl">About</span><span class="mval" id="m-about" style="color:var(--muted);font-size:13px;line-height:1.5;"></span></div>
+    <div class="mbtns">
+      <button class="btn btn-p" onclick="addPlan();closeModal()">Add to plan</button>
+      <button class="btn btn-s" onclick="toast('Shared with crew ✓');closeModal()">Share with crew</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+  var curName = '';
+
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function fp(btn) {
+    document.querySelectorAll('.pill').forEach(function(p){ p.classList.remove('on'); });
+    btn.classList.add('on');
+  }
+
+  function modal(name, venue, hours, price, about) {
+    curName = name;
+    document.getElementById('m-name').textContent = name;
+    document.getElementById('m-venue').textContent = venue;
+    document.getElementById('m-hours').textContent = hours;
+    document.getElementById('m-price').textContent = price;
+    document.getElementById('m-about').textContent = about;
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  function closeOverlay(e) {
+    if (e.target.id === 'overlay') closeModal();
+  }
+
+  function addPlan() {
+    toast(curName + ' added to tonight\'s plan ✓');
+  }
+
+  function toast(msg) {
+    var el = document.getElementById('toastEl');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2600);
+  }
+</script>
+</body>
+</html>
