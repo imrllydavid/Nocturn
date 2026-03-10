@@ -786,6 +786,200 @@
   .btn-s { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
   .btn-s:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* ════════════ FAB ════════════ */
+  .fab {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0a0a0a;
+    font-size: 26px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(232,213,163,0.35);
+    border: none;
+    transition: transform .2s, background .2s;
+  }
+  .fab:hover { transform: scale(1.08); background: var(--accent2); }
+
+  /* ════════════ CREATE PLAN OVERLAY ════════════ */
+  #create-plan-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 400;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  #create-plan-overlay.open { opacity: 1; pointer-events: all; }
+
+  .cp-sheet {
+    width: 100%; max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    padding: 24px 28px 44px;
+    transform: translateY(40px);
+    transition: transform .28s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  #create-plan-overlay.open .cp-sheet { transform: translateY(0); }
+
+  .cp-handle { width: 36px; height: 3px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+  .cp-title { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 20px; }
+
+  .cp-field { margin-bottom: 16px; }
+  .cp-field label {
+    display: block;
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--muted);
+    margin-bottom: 7px;
+  }
+  .cp-field input, .cp-field textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+    resize: none;
+  }
+  .cp-field input:focus, .cp-field textarea:focus { border-color: var(--accent); }
+
+  .cp-stops { margin-bottom: 16px; }
+  .cp-stop-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .cp-stop-time {
+    width: 80px; flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 10px;
+    font-size: 13px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .cp-stop-time:focus { border-color: var(--accent); }
+  .cp-stop-name {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .cp-stop-name:focus { border-color: var(--accent); }
+  .cp-stop-del {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); font-size: 16px;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all .2s;
+  }
+  .cp-stop-del:hover { border-color: var(--red); color: var(--red); }
+
+  .cp-add-stop {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+    cursor: pointer; padding: 6px 0;
+    border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+    transition: color .2s;
+  }
+  .cp-add-stop:hover { color: var(--accent); }
+
+  .cp-invite-row {
+    display: flex; gap: 8px;
+  }
+  .cp-invite-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .cp-invite-input:focus { border-color: var(--accent); }
+  .cp-invite-btn {
+    padding: 11px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s;
+  }
+  .cp-invite-btn:hover { border-color: var(--accent); }
+
+  .cp-invitees { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; min-height: 0; }
+  .cp-invitee-tag {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    background: rgba(232,213,163,0.1);
+    border: 1px solid rgba(232,213,163,0.2);
+    border-radius: 20px;
+    font-size: 12px; color: var(--accent);
+  }
+  .cp-invitee-tag span { cursor: pointer; opacity: 0.6; }
+  .cp-invitee-tag span:hover { opacity: 1; }
+
+  .cp-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; margin-top: 8px;
+    transition: background .2s;
+  }
+  .cp-submit:hover { background: var(--accent2); }
+
+  /* ════════════ PLAN EMPTY STATE ════════════ */
+  .plan-empty {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 28px;
+    text-align: center;
+  }
+  .plan-empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .plan-empty-title { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 8px; }
+  .plan-empty-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+  .plan-empty-btn {
+    padding: 13px 28px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none; border-radius: 12px;
+    font-size: 14px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .plan-empty-btn:hover { background: var(--accent2); }
+
   /* ════════════ TOAST ════════════ */
   .toast {
     position: fixed; bottom: 90px; left: 50%;
@@ -951,34 +1145,36 @@
 
     <!-- ── PLAN ── -->
     <div id="page-plan" class="page">
-      <div style="padding:24px 28px 0;">
-        <div class="pg-title">Tonight's Plan</div>
-        <div class="pg-sub">Friday Night Out · 6 people invited</div>
+      <!-- Empty state -->
+      <div class="plan-empty" id="plan-empty">
+        <div class="plan-empty-icon">🌙</div>
+        <div class="plan-empty-title">No plan yet tonight</div>
+        <div class="plan-empty-sub">Create a plan, add your stops,<br>and invite your crew.</div>
+        <button class="plan-empty-btn" onclick="openCreatePlan()">+ Create a plan</button>
       </div>
-      <div class="plan-grid" style="padding:0 28px 28px;">
-        <div>
-          <div class="pcard">
-            <div class="pcard-label">Itinerary</div>
-            <div class="tl">
-              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">7:00 PM</div><div class="tl-n">Pre-drinks at Lena's</div><div class="tl-d">House party · 12 Dunmore Rd</div></div></div>
-              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">9:30 PM</div><div class="tl-n">Aviary Rooftop</div><div class="tl-d">Cocktails & skyline · Shoreditch</div></div></div>
-              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">11:30 PM</div><div class="tl-n">XOYO</div><div class="tl-d">House & techno · Islington · £18</div></div></div>
-              <div class="tl-row"><div class="tl-spine"><div class="tl-dot"></div><div class="tl-bar"></div></div><div class="tl-body"><div class="tl-t">3:00 AM</div><div class="tl-n">Late night food</div><div class="tl-d">TBD — Decide on the night</div></div></div>
-            </div>
-            <button class="add-btn" onclick="toast('Stop added ✓')"><span style="font-size:18px;line-height:1">+</span> Add a stop</button>
+      <!-- Active plan -->
+      <div id="plan-active" style="display:none;">
+        <div style="padding:24px 28px 0; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div class="pg-title" id="active-plan-title">Tonight's Plan</div>
+            <div class="pg-sub" id="active-plan-sub"></div>
           </div>
+          <button style="padding:8px 16px; background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="openCreatePlan()">+ New plan</button>
         </div>
-        <div>
-          <div class="pcard">
-            <div class="pcard-label">Crew · 6 invited</div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a882,#e8d5a3)" id="plan-you-avatar">JS</div><div><div class="cn" id="plan-you-name">You</div><div class="cs">Organiser</div></div></div><span class="badge b-in">In</span></div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">MA</div><div><div class="cn">Marcus A.</div><div class="cs">Last seen 2h ago</div></div></div><span class="badge b-in">In</span></div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#e8a3c4,#d482b0)">TK</div><div><div class="cn">Tara K.</div><div class="cs">Replied 30m ago</div></div></div><span class="badge b-mb">Maybe</span></div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3e8c4,#82d4a3)">AH</div><div><div class="cn">Aisha H.</div><div class="cs">Viewed plan</div></div></div><span class="badge b-in">In</span></div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#e8c4a3,#d4a882)">KL</div><div><div class="cn">Kev L.</div><div class="cs">No response</div></div></div><span class="badge b-no">Out</span></div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a3e8,#a882d4)">PM</div><div><div class="cn">Priya M.</div><div class="cs">Joining from XOYO</div></div></div><span class="badge b-in">In</span></div>
+        <div class="plan-grid" style="padding:16px 28px 28px;">
+          <div>
+            <div class="pcard">
+              <div class="pcard-label">Itinerary</div>
+              <div class="tl" id="active-tl"></div>
+            </div>
           </div>
-          <div class="share-strip" onclick="toast('Link copied ✓')"><span>🔗</span><span>Share plan with friends</span><span>Copy link</span></div>
+          <div>
+            <div class="pcard">
+              <div class="pcard-label" id="crew-label">Crew</div>
+              <div id="crew-list"></div>
+            </div>
+            <div class="share-strip" onclick="copyPlanLink()"><span>🔗</span><span>Share plan with friends</span><span>Copy link</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1006,6 +1202,50 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab-btn" onclick="openCreatePlan()" title="Create plan">+</button>
+
+  <!-- CREATE PLAN SHEET -->
+  <div id="create-plan-overlay" onclick="closeCPIfBg(event)">
+    <div class="cp-sheet">
+      <div class="cp-handle"></div>
+      <div class="cp-title">Create a plan</div>
+
+      <div class="cp-field">
+        <label>Plan name</label>
+        <input type="text" id="cp-name" placeholder="e.g. Friday Night Out" />
+      </div>
+
+      <div class="cp-field">
+        <label>Date</label>
+        <input type="date" id="cp-date" />
+      </div>
+
+      <div class="cp-field">
+        <label>Stops &amp; times</label>
+        <div class="cp-stops" id="cp-stops">
+          <div class="cp-stop-row">
+            <input type="time" class="cp-stop-time" placeholder="9:00 PM" />
+            <input type="text" class="cp-stop-name" placeholder="Where are you going?" />
+            <button class="cp-stop-del" onclick="removeStop(this)">×</button>
+          </div>
+        </div>
+        <button class="cp-add-stop" onclick="addStop()"><span style="font-size:18px;line-height:1">+</span> Add a stop</button>
+      </div>
+
+      <div class="cp-field">
+        <label>Invite friends (email)</label>
+        <div class="cp-invite-row">
+          <input type="email" class="cp-invite-input" id="cp-invite-input" placeholder="friend@example.com" onkeydown="if(event.key==='Enter')addInvitee()" />
+          <button class="cp-invite-btn" onclick="addInvitee()">Add</button>
+        </div>
+        <div class="cp-invitees" id="cp-invitees"></div>
+      </div>
+
+      <button class="cp-submit" onclick="submitPlan()">Create plan &amp; invite crew</button>
+    </div>
   </div>
 
   <!-- BOTTOM NAV -->
@@ -1039,8 +1279,8 @@
 <script>
   // ─────────────────────────────────────────
   // REPLACE THESE TWO VALUES WITH YOUR OWN
-  const SUPABASE_URL = 'https://zbjhplpjhrhpibimpcgc.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_lrYkhsPqP3JSwclvS6K9EQ_uk7BF6Qa';
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
   // ─────────────────────────────────────────
 
   const { createClient } = supabase;
@@ -1137,6 +1377,9 @@
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').style.display = 'flex';
 
+    // Check for plan in URL
+    checkPlanInURL();
+
     // Set avatar initials + email
     const email = user.email || '';
     const name = user.user_metadata?.full_name || email;
@@ -1211,6 +1454,183 @@
     el.textContent = msg;
     el.classList.add('show');
     setTimeout(function(){ el.classList.remove('show'); }, 2600);
+  }
+
+  // ── Create Plan ──
+  var currentPlan = null;
+  var invitees = [];
+
+  function openCreatePlan() {
+    // Set today's date as default
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('cp-date').value = today;
+    document.getElementById('create-plan-overlay').classList.add('open');
+  }
+
+  function closeCPIfBg(e) {
+    if (e.target.id === 'create-plan-overlay') {
+      document.getElementById('create-plan-overlay').classList.remove('open');
+    }
+  }
+
+  function addStop() {
+    var row = document.createElement('div');
+    row.className = 'cp-stop-row';
+    row.innerHTML = '<input type="time" class="cp-stop-time" /><input type="text" class="cp-stop-name" placeholder="Where are you going?" /><button class="cp-stop-del" onclick="removeStop(this)">×</button>';
+    document.getElementById('cp-stops').appendChild(row);
+  }
+
+  function removeStop(btn) {
+    var rows = document.querySelectorAll('.cp-stop-row');
+    if (rows.length > 1) btn.parentElement.remove();
+    else toast('Need at least one stop');
+  }
+
+  function addInvitee() {
+    var input = document.getElementById('cp-invite-input');
+    var email = input.value.trim();
+    if (!email || !email.includes('@')) { toast('Enter a valid email'); return; }
+    if (invitees.includes(email)) { toast('Already added'); input.value=''; return; }
+    invitees.push(email);
+    renderInvitees();
+    input.value = '';
+  }
+
+  function removeInvitee(email) {
+    invitees = invitees.filter(function(e){ return e !== email; });
+    renderInvitees();
+  }
+
+  function renderInvitees() {
+    var container = document.getElementById('cp-invitees');
+    container.innerHTML = invitees.map(function(e){
+      return '<div class="cp-invitee-tag">' + e + '<span onclick="removeInvitee('' + e + '')">×</span></div>';
+    }).join('');
+  }
+
+  async function submitPlan() {
+    var name = document.getElementById('cp-name').value.trim();
+    var date = document.getElementById('cp-date').value;
+
+    if (!name) { toast('Give your plan a name'); return; }
+    if (!date) { toast('Pick a date'); return; }
+
+    // Collect stops
+    var stops = [];
+    document.querySelectorAll('.cp-stop-row').forEach(function(row) {
+      var time = row.querySelector('.cp-stop-time').value;
+      var place = row.querySelector('.cp-stop-name').value.trim();
+      if (place) stops.push({ time: time, place: place });
+    });
+
+    if (stops.length === 0) { toast('Add at least one stop'); return; }
+
+    var btn = document.querySelector('.cp-submit');
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    // Get current user
+    var { data: { user } } = await sb.auth.getUser();
+    var userName = user.user_metadata?.full_name || user.email;
+
+    // Save to Supabase
+    var { data, error } = await sb.from('plans').insert({
+      name: name,
+      date: date,
+      stops: stops,
+      invitees: invitees,
+      owner_id: user.id,
+      owner_name: userName
+    }).select().single();
+
+    btn.disabled = false;
+    btn.textContent = 'Create plan & invite crew';
+
+    if (error) {
+      // If table doesn't exist yet, show plan locally
+      if (error.code === '42P01') {
+        showPlanLocally({ name, date, stops, invitees, owner_name: userName });
+        document.getElementById('create-plan-overlay').classList.remove('open');
+        toast('Plan created! (Set up DB to save permanently)');
+        showPage('page-plan', document.querySelector('.nav-btn:nth-child(3)'));
+        return;
+      }
+      toast('Error: ' + error.message);
+      return;
+    }
+
+    currentPlan = data;
+    showPlanLocally(data);
+    document.getElementById('create-plan-overlay').classList.remove('open');
+    toast('Plan created! Link copied to clipboard 🎉');
+    copyPlanLink();
+    showPage('page-plan', document.querySelector('.nav-btn:nth-child(3)'));
+  }
+
+  function showPlanLocally(plan) {
+    document.getElementById('plan-empty').style.display = 'none';
+    document.getElementById('plan-active').style.display = 'block';
+
+    document.getElementById('active-plan-title').textContent = plan.name;
+    var dateStr = plan.date ? new Date(plan.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }) : '';
+    document.getElementById('active-plan-sub').textContent = dateStr + (plan.invitees && plan.invitees.length ? ' · ' + (plan.invitees.length + 1) + ' invited' : '');
+
+    // Build timeline
+    var tl = document.getElementById('active-tl');
+    tl.innerHTML = '';
+    var stops = plan.stops || [];
+    stops.forEach(function(stop, i) {
+      var timeLabel = stop.time ? formatTime(stop.time) : '';
+      var row = document.createElement('div');
+      row.className = 'tl-row';
+      row.innerHTML = '<div class="tl-spine"><div class="tl-dot"></div>' + (i < stops.length-1 ? '<div class="tl-bar"></div>' : '') + '</div><div class="tl-body"><div class="tl-t">' + timeLabel + '</div><div class="tl-n">' + stop.place + '</div></div>';
+      tl.appendChild(row);
+    });
+
+    // Build crew
+    var crew = document.getElementById('crew-list');
+    crew.innerHTML = '';
+    var initials = getInitials(plan.owner_name || 'You');
+    crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a882,#e8d5a3)">' + initials + '</div><div><div class="cn">' + (plan.owner_name || 'You') + '</div><div class="cs">Organiser</div></div></div><span class="badge b-in">In</span></div>';
+    (plan.invitees || []).forEach(function(email) {
+      var ini = email[0].toUpperCase();
+      crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">' + ini + '</div><div><div class="cn">' + email + '</div><div class="cs">Invited · No response yet</div></div></div><span class="badge b-mb">Pending</span></div>';
+    });
+    document.getElementById('crew-label').textContent = 'Crew · ' + (1 + (plan.invitees||[]).length) + ' invited';
+
+    currentPlan = plan;
+  }
+
+  function formatTime(t) {
+    if (!t) return '';
+    var parts = t.split(':');
+    var h = parseInt(parts[0]);
+    var m = parts[1];
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + ampm;
+  }
+
+  function getInitials(name) {
+    return name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  }
+
+  function copyPlanLink() {
+    var link = window.location.href.split('?')[0] + (currentPlan && currentPlan.id ? '?plan=' + currentPlan.id : '');
+    navigator.clipboard.writeText(link).then(function(){
+      toast('Link copied ✓');
+    }).catch(function(){
+      toast('Share: ' + window.location.href);
+    });
+  }
+
+  // ── Load plan from URL on start ──
+  async function checkPlanInURL() {
+    var params = new URLSearchParams(window.location.search);
+    var planId = params.get('plan');
+    if (!planId) return;
+    var { data, error } = await sb.from('plans').select('*').eq('id', planId).single();
+    if (data) showPlanLocally(data);
   }
 </script>
 </body>
