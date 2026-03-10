@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nocturn — Nightlife Coordination</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,6 +30,126 @@
     font-weight: 300;
     overflow: hidden;
   }
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 32px;
+  }
+
+  #auth-screen.hidden { display: none; }
+
+  .auth-logo {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 42px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .auth-tagline {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 48px;
+    letter-spacing: 0.04em;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+  }
+
+  .auth-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .auth-tab {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all .2s;
+  }
+  .auth-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .auth-field {
+    margin-bottom: 14px;
+  }
+
+  .auth-field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 7px;
+  }
+
+  .auth-field input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .auth-field input:focus { border-color: var(--accent); }
+
+  .auth-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background .2s;
+  }
+  .auth-btn:hover { background: var(--accent2); }
+  .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .auth-msg {
+    font-size: 12px;
+    text-align: center;
+    margin-top: 14px;
+    min-height: 18px;
+    color: var(--muted);
+  }
+  .auth-msg.error { color: var(--red); }
+  .auth-msg.success { color: var(--green); }
 
   /* ── SHELL ── */
   .shell {
@@ -87,6 +208,46 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 500; color: #0a0a0a;
     cursor: pointer;
+    position: relative;
+  }
+
+  /* Sign out dropdown */
+  .avatar-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 140px;
+    display: none;
+    z-index: 50;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .avatar-menu.open { display: block; }
+
+  .avatar-menu-item {
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: var(--muted);
+    transition: all .15s;
+  }
+  .avatar-menu-item:hover { background: var(--surface2); color: var(--text); }
+  .avatar-menu-item.danger:hover { color: var(--red); }
+
+  .avatar-email {
+    padding: 10px 14px 8px;
+    font-size: 11px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
   }
 
   /* ── CONTENT ── */
@@ -167,7 +328,6 @@
     min-height: 0;
   }
 
-  /* Fake map background */
   .map-canvas {
     position: absolute;
     inset: 0;
@@ -175,7 +335,6 @@
     overflow: hidden;
   }
 
-  /* Grid */
   .map-canvas::before {
     content: '';
     position: absolute; inset: 0;
@@ -185,7 +344,6 @@
     background-size: 48px 48px;
   }
 
-  /* Diagonal accent lines to add depth */
   .map-canvas::after {
     content: '';
     position: absolute; inset: 0;
@@ -211,7 +369,6 @@
     background: rgba(255,255,255,0.09) !important;
   }
 
-  /* blocks */
   .block {
     position: absolute;
     background: rgba(255,255,255,0.02);
@@ -294,7 +451,6 @@
   }
   .map-ctrl:hover { border-color: var(--accent); }
 
-  /* Bottom sheet */
   .sheet {
     background: var(--surface);
     border-top: 1px solid var(--border);
@@ -649,14 +805,66 @@
 </style>
 </head>
 <body>
-<div class="shell">
+
+<!-- ── AUTH SCREEN ── -->
+<div id="auth-screen">
+  <div class="auth-logo">Nocturn</div>
+  <div class="auth-tagline">Your night, coordinated.</div>
+  <div class="auth-box">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+    </div>
+
+    <!-- Login form -->
+    <div id="form-login">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@example.com" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <button class="auth-btn" id="login-btn" onclick="handleLogin()">Sign in</button>
+    </div>
+
+    <!-- Signup form -->
+    <div id="form-signup" style="display:none;">
+      <div class="auth-field">
+        <label>Your name</label>
+        <input type="text" id="signup-name" placeholder="First name" />
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" />
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="Min. 6 characters" />
+      </div>
+      <button class="auth-btn" id="signup-btn" onclick="handleSignup()">Create account</button>
+    </div>
+
+    <div class="auth-msg" id="auth-msg"></div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div class="shell" id="app" style="display:none;">
 
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="logo">Nocturn</div>
     <div class="topbar-right">
       <div class="icon-btn">🔔<span class="notif-dot"></span></div>
-      <div class="avatar">JS</div>
+      <div class="avatar" id="user-avatar" onclick="toggleAvatarMenu()">
+        <span id="avatar-initials">?</span>
+        <div class="avatar-menu" id="avatar-menu">
+          <div class="avatar-email" id="avatar-email"></div>
+          <div class="avatar-menu-item danger" onclick="handleSignOut()">Sign out</div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -667,35 +875,29 @@
     <div id="page-map" class="page active" style="display:flex;flex-direction:column;">
       <div class="map-wrap" style="flex:1;position:relative;">
         <div class="map-canvas">
-          <!-- Thick roads -->
           <div class="road-h road-thick" style="top:38%;height:5px;"></div>
           <div class="road-h road-thick" style="top:62%;height:5px;"></div>
           <div class="road-v road-thick" style="left:35%;width:5px;"></div>
           <div class="road-v road-thick" style="left:65%;width:5px;"></div>
-          <!-- Thin roads -->
           <div class="road-h" style="top:22%;height:2px;"></div>
           <div class="road-h" style="top:50%;height:2px;"></div>
           <div class="road-h" style="top:78%;height:2px;"></div>
           <div class="road-v" style="left:20%;width:2px;"></div>
           <div class="road-v" style="left:50%;width:2px;"></div>
           <div class="road-v" style="left:80%;width:2px;"></div>
-          <!-- Blocks -->
           <div class="block" style="left:36%;top:23%;width:12%;height:14%;"></div>
           <div class="block" style="left:66%;top:39%;width:12%;height:21%;"></div>
           <div class="block" style="left:21%;top:39%;width:12%;height:21%;"></div>
           <div class="block" style="left:51%;top:63%;width:12%;height:13%;"></div>
           <div class="block" style="left:36%;top:63%;width:12%;height:13%;"></div>
           <div class="block" style="left:66%;top:63%;width:12%;height:13%;"></div>
-          <!-- User location -->
           <div class="my-dot" style="left:50%;top:50%;"></div>
-          <!-- Venue pins -->
           <div class="pin" style="left:27%;top:37%;" onclick="modal('Fabric','Club · Farringdon','10pm – 6am','£20 advance','Drum & bass night with four rooms. Dense crowds expected after midnight.')"><div class="pin-body hot"><div class="pin-circle"></div>Fabric</div></div>
           <div class="pin" style="left:63%;top:28%;" onclick="modal('Aviary','Rooftop · Shoreditch','6pm – 2am','£15 entry','Stunning skyline views. Cocktail-forward menu, DJ sets from 9pm.')"><div class="pin-body"><div class="pin-circle"></div>Aviary</div></div>
           <div class="pin" style="left:50%;top:58%;" onclick="modal('XOYO','Club · Islington','11pm – 5am','£18','House &amp; techno across two floors. Resident DJs plus a special guest.')"><div class="pin-body hot"><div class="pin-circle"></div>XOYO</div></div>
           <div class="pin" style="left:77%;top:45%;" onclick="modal('Ronnie Scott\'s','Live Jazz · Soho','8pm – 3am','£35 members','Legendary venue. Tonight: late-night quartet with open bar after midnight.')"><div class="pin-body"><div class="pin-circle"></div>Ronnie Scott's</div></div>
           <div class="pin" style="left:21%;top:64%;" onclick="modal('ECC Mayfair','Cocktail Bar · Mayfair','5pm – 1am','Free entry','Prohibition-era cocktail bar. Expert mixologists, no reservations needed.')"><div class="pin-body grn"><div class="pin-circle" style="background:var(--green)"></div>ECC</div></div>
           <div class="pin" style="left:67%;top:71%;" onclick="modal('Sky Garden','Bar · City of London','6:30pm – 11pm','Free (book ahead)','London\'s highest public garden. Exceptional views, advance booking required.')"><div class="pin-body"><div class="pin-circle"></div>Sky Garden</div></div>
-          <!-- Controls -->
           <div class="map-ctrl-group">
             <div class="map-ctrl" onclick="toast('Zoomed in')">＋</div>
             <div class="map-ctrl" onclick="toast('Zoomed out')">－</div>
@@ -703,7 +905,6 @@
           </div>
         </div>
       </div>
-      <!-- Sheet -->
       <div class="sheet">
         <div class="sheet-bar"></div>
         <div class="sheet-label">Nearby tonight</div>
@@ -770,7 +971,7 @@
         <div>
           <div class="pcard">
             <div class="pcard-label">Crew · 6 invited</div>
-            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a882,#e8d5a3)">JS</div><div><div class="cn">You</div><div class="cs">Organiser</div></div></div><span class="badge b-in">In</span></div>
+            <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#c4a882,#e8d5a3)" id="plan-you-avatar">JS</div><div><div class="cn" id="plan-you-name">You</div><div class="cs">Organiser</div></div></div><span class="badge b-in">In</span></div>
             <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">MA</div><div><div class="cn">Marcus A.</div><div class="cs">Last seen 2h ago</div></div></div><span class="badge b-in">In</span></div>
             <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#e8a3c4,#d482b0)">TK</div><div><div class="cn">Tara K.</div><div class="cs">Replied 30m ago</div></div></div><span class="badge b-mb">Maybe</span></div>
             <div class="crew-row"><div class="crew-l"><div class="cava" style="background:linear-gradient(135deg,#a3e8c4,#82d4a3)">AH</div><div><div class="cn">Aisha H.</div><div class="cs">Viewed plan</div></div></div><span class="badge b-in">In</span></div>
@@ -805,7 +1006,7 @@
       </div>
     </div>
 
-  </div><!-- /content -->
+  </div>
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
@@ -836,6 +1037,139 @@
 <div class="toast" id="toastEl"></div>
 
 <script>
+  // ─────────────────────────────────────────
+  // REPLACE THESE TWO VALUES WITH YOUR OWN
+  const SUPABASE_URL = 'https://zbjhplpjhrhpibimpcgc.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_lrYkhsPqP3JSwclvS6K9EQ_uk7BF6Qa';
+  // ─────────────────────────────────────────
+
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ── On load: check if already signed in ──
+  window.addEventListener('load', async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      showApp(session.user);
+    }
+  });
+
+  // ── Auth tab switch ──
+  function switchTab(tab) {
+    document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+    setAuthMsg('', '');
+  }
+
+  function setAuthMsg(msg, type) {
+    const el = document.getElementById('auth-msg');
+    el.textContent = msg;
+    el.className = 'auth-msg' + (type ? ' ' + type : '');
+  }
+
+  // ── Sign up ──
+  async function handleSignup() {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+
+    if (!name || !email || !password) {
+      setAuthMsg('Please fill in all fields.', 'error'); return;
+    }
+    if (password.length < 6) {
+      setAuthMsg('Password must be at least 6 characters.', 'error'); return;
+    }
+
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+    setAuthMsg('', '');
+
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } }
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+
+    if (error) {
+      setAuthMsg(error.message, 'error');
+    } else if (data.user && !data.session) {
+      setAuthMsg('Check your email to confirm your account, then sign in.', 'success');
+      switchTab('login');
+    } else if (data.session) {
+      showApp(data.user);
+    }
+  }
+
+  // ── Sign in ──
+  async function handleLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!email || !password) {
+      setAuthMsg('Please enter your email and password.', 'error'); return;
+    }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    setAuthMsg('', '');
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+
+    if (error) {
+      setAuthMsg(error.message, 'error');
+    } else {
+      showApp(data.user);
+    }
+  }
+
+  // ── Show main app ──
+  function showApp(user) {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app').style.display = 'flex';
+
+    // Set avatar initials + email
+    const email = user.email || '';
+    const name = user.user_metadata?.full_name || email;
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+    document.getElementById('avatar-initials').textContent = initials;
+    document.getElementById('avatar-email').textContent = email;
+
+    // Update Plan page "You" row
+    document.getElementById('plan-you-avatar').textContent = initials;
+    document.getElementById('plan-you-name').textContent = name.split(' ')[0] || 'You';
+  }
+
+  // ── Sign out ──
+  async function handleSignOut() {
+    await sb.auth.signOut();
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('avatar-menu').classList.remove('open');
+    setAuthMsg('', '');
+  }
+
+  // ── Avatar menu toggle ──
+  function toggleAvatarMenu() {
+    document.getElementById('avatar-menu').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('user-avatar').contains(e.target)) {
+      document.getElementById('avatar-menu').classList.remove('open');
+    }
+  });
+
+  // ── App navigation ──
   var curName = '';
 
   function showPage(id, btn) {
