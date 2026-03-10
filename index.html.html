@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Nocturn — Nightlife Coordination</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,11 +24,17 @@
 
   html, body {
     height: 100%;
+    max-height: 100%;
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
     overflow: hidden;
+    position: fixed;
+    width: 100%;
+    top: 0; left: 0;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   /* ── AUTH SCREEN ── */
@@ -116,11 +122,12 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px 14px;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     outline: none;
     transition: border-color .2s;
+    -webkit-appearance: none;
   }
   .auth-field input:focus { border-color: var(--accent); }
 
@@ -156,7 +163,11 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     width: 100%;
+    position: fixed;
+    top: 0; left: 0;
+    right: 0; bottom: 0;
   }
 
   /* ── TOP BAR ── */
@@ -912,11 +923,12 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px 14px;
-    font-size: 14px; color: var(--text);
+    font-size: 16px; color: var(--text);
     font-family: 'DM Sans', sans-serif;
     outline: none;
     transition: border-color .2s;
     resize: none;
+    -webkit-appearance: none;
   }
   .cp-field input:focus, .cp-field textarea:focus { border-color: var(--accent); }
 
