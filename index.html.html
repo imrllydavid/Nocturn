@@ -1504,7 +1504,7 @@
   function renderInvitees() {
     var container = document.getElementById('cp-invitees');
     container.innerHTML = invitees.map(function(e){
-      return '<div class="cp-invitee-tag">' + e + '<span onclick="removeInvitee('' + e + '')">×</span></div>';
+      return '<div class="cp-invitee-tag">' + e + '<span onclick="removeInvitee(\'' + e + '\')">×</span></div>';
     }).join('');
   }
 
