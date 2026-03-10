@@ -1087,6 +1087,11 @@
   .plan-empty-btn:hover { background: var(--accent2); }
 
   /* ════════════ TOAST ════════════ */
+
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(125,186,138,0.25); }
+    50% { box-shadow: 0 0 0 6px rgba(125,186,138,0.08); }
+  }
   .toast {
     position: fixed; bottom: 90px; left: 50%;
     transform: translateX(-50%) translateY(10px);
@@ -1270,7 +1275,13 @@
         <div class="plan-grid" style="padding:16px 28px 28px;">
           <div>
             <div class="pcard">
-              <div class="pcard-label">Itinerary</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:400;color:var(--text);">Itinerary</div>
+                <button id="live-loc-btn" onclick="toggleLiveLocation()" style="display:flex;align-items:center;gap:7px;padding:7px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;">
+                  <span id="live-loc-dot" style="width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background .2s;display:inline-block;"></span>
+                  <span id="live-loc-label">Share location</span>
+                </button>
+              </div>
               <div class="tl" id="active-tl"></div>
               <div id="no-stops-hint" style="display:none; padding:14px; background:var(--surface2); border-radius:10px; margin-top:8px; text-align:center;">
                 <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">No stops yet — browse venues to add them</div>
@@ -1983,6 +1994,49 @@
   }
 
   function requestJoinPlan() { toast('Join request sent ✓'); closeFriendPlan(); }
+
+  // ── Live location toggle ──
+  var liveLocActive = false;
+  var liveLocWatchId = null;
+
+  function toggleLiveLocation() {
+    var btn = document.getElementById('live-loc-btn');
+    var dot = document.getElementById('live-loc-dot');
+    var label = document.getElementById('live-loc-label');
+
+    if (!liveLocActive) {
+      if (!navigator.geolocation) { toast('Location not supported on this device'); return; }
+      navigator.geolocation.getCurrentPosition(function() {
+        liveLocActive = true;
+        liveLocWatchId = navigator.geolocation.watchPosition(function(pos) {
+          // In a real app, broadcast pos.coords to crew via Supabase realtime
+          console.log('Live location:', pos.coords.latitude, pos.coords.longitude);
+        }, null, { enableHighAccuracy: true, maximumAge: 10000 });
+        // Update UI
+        btn.style.borderColor = 'var(--green)';
+        btn.style.color = 'var(--green)';
+        btn.style.background = 'rgba(125,186,138,0.08)';
+        dot.style.background = 'var(--green)';
+        dot.style.boxShadow = '0 0 0 3px rgba(125,186,138,0.25)';
+        dot.style.animation = 'pulse-dot 1.8s ease-in-out infinite';
+        label.textContent = 'Live · sharing';
+        toast('📍 Sharing live location with crew');
+      }, function() {
+        toast('Location access denied — check settings');
+      });
+    } else {
+      liveLocActive = false;
+      if (liveLocWatchId !== null) { navigator.geolocation.clearWatch(liveLocWatchId); liveLocWatchId = null; }
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--muted)';
+      btn.style.background = 'var(--surface2)';
+      dot.style.background = 'var(--muted)';
+      dot.style.boxShadow = 'none';
+      dot.style.animation = 'none';
+      label.textContent = 'Share location';
+      toast('Location sharing off');
+    }
+  }
 
   async function checkPlanInURL() {
     var params = new URLSearchParams(window.location.search);
