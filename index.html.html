@@ -1334,7 +1334,8 @@
     <div class="cp-sheet">
       <div class="cp-handle"></div>
       <div class="cp-title">Create a plan</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;">Give your night a name and a date. You can add stops from Discover and invite your crew after.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Give your night a name and a date. You can add stops from Discover and invite your crew after.</p>
+      <div id="cp-venue-hint" style="display:none;font-size:13px;color:var(--green);background:rgba(125,186,138,0.1);border:1px solid rgba(125,186,138,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;">📍 </div>
 
       <div class="cp-field">
         <label>Plan name</label>
@@ -1593,9 +1594,17 @@
     if (e.target.id === 'overlay') closeModal();
   }
 
+  var pendingVenue = null;
+
   function addPlan() {
     if (!currentPlan) {
-      toast('Create a plan first!');
+      // Save venue so we can add it after plan is created
+      pendingVenue = {
+        place: curName,
+        address: curAddress,
+        time: document.getElementById('m-start-time').value || '',
+        end_time: document.getElementById('m-end-time').value || ''
+      };
       closeModal();
       openCreatePlan();
       return;
@@ -1607,6 +1616,17 @@
     currentPlan.stops = stops;
     showPlanLocally(currentPlan);
     toast(curName + ' added to your plan ✓');
+  }
+
+  function addPendingVenueIfAny() {
+    if (pendingVenue && currentPlan) {
+      var stops = currentPlan.stops || [];
+      stops.push(pendingVenue);
+      currentPlan.stops = stops;
+      showPlanLocally(currentPlan);
+      toast(pendingVenue.place + ' added to your plan ✓');
+      pendingVenue = null;
+    }
   }
 
   function toast(msg) {
@@ -1625,12 +1645,22 @@
     document.getElementById('cp-date').value = today;
     document.getElementById('cp-start-time').value = '';
     document.getElementById('cp-name').value = '';
+    var hint = document.getElementById('cp-venue-hint');
+    if (hint) {
+      if (pendingVenue) {
+        hint.textContent = pendingVenue.place + ' will be added to your plan once created.';
+        hint.style.display = 'block';
+      } else {
+        hint.style.display = 'none';
+      }
+    }
     document.getElementById('create-plan-overlay').classList.add('open');
   }
 
   function closeCPIfBg(e) {
     if (e.target.id === 'create-plan-overlay') {
       document.getElementById('create-plan-overlay').classList.remove('open');
+      pendingVenue = null;
     }
   }
 
@@ -1713,6 +1743,7 @@
       // If table doesn't exist yet, show plan locally
       if (error.code === '42P01') {
         showPlanLocally({ name, date, stops, invitees, owner_name: userName });
+        addPendingVenueIfAny();
         document.getElementById('create-plan-overlay').classList.remove('open');
         toast('Plan created! (Set up DB to save permanently)');
         showPage('page-plan', document.querySelector('.nav-btn:nth-child(3)'));
@@ -1724,6 +1755,7 @@
 
     currentPlan = data;
     showPlanLocally(data);
+    addPendingVenueIfAny();
     document.getElementById('create-plan-overlay').classList.remove('open');
     toast('Plan created! Link copied to clipboard 🎉');
     copyPlanLink();
