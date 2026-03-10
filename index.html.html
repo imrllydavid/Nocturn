@@ -1267,7 +1267,10 @@
             <div class="pg-title" id="active-plan-title">Tonight's Plan</div>
             <div class="pg-sub" id="active-plan-sub"></div>
           </div>
-          <button style="padding:8px 16px; background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="openCreatePlan()">+ New plan</button>
+          <div style="display:flex; gap:8px;">
+            <button style="padding:8px 16px; background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="openCreatePlan()">+ New</button>
+            <button style="padding:8px 14px; background:none; border:1px solid rgba(201,112,112,0.3); border-radius:10px; color:var(--red); font-size:12px; font-family:'DM Sans',sans-serif; cursor:pointer;" onclick="confirmDeletePlan()">🗑</button>
+          </div>
         </div>
         <div class="plan-grid" style="padding:16px 28px 28px;">
           <div>
@@ -1795,6 +1798,25 @@
     currentPlan.stops.splice(i, 1);
     showPlanLocally(currentPlan);
     toast('Stop removed');
+  }
+
+  // ── Delete plan ──
+  function confirmDeletePlan() {
+    if (!currentPlan) return;
+    if (confirm('Delete "' + currentPlan.name + '"? This cannot be undone.')) {
+      deletePlan();
+    }
+  }
+
+  async function deletePlan() {
+    if (!currentPlan) return;
+    if (currentPlan.id) {
+      await sb.from('plans').delete().eq('id', currentPlan.id);
+    }
+    currentPlan = null;
+    document.getElementById('plan-active').style.display = 'none';
+    document.getElementById('plan-empty').style.display = 'flex';
+    toast('Plan deleted');
   }
 
   // ── Load plan from URL on start ──
