@@ -784,62 +784,35 @@
   .share-strip span:last-child { margin-left: auto; font-size: 11px; color: var(--accent); }
 
   /* ════════════ MEET PAGE ════════════ */
-  #page-meet { padding: 24px 28px 28px; }
+  #page-meet { padding: 0; }
 
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-top: 16px;
-    margin-bottom: 16px;
-  }
-
-  .stat {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px 16px;
-  }
-  .stat-ic { font-size: 20px; margin-bottom: 10px; }
-  .stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-bottom: 4px; }
-  .stat-val { font-size: 22px; font-weight: 500; }
-  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
-
-  .feed-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
-  .feed-hd {
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border);
+  .vote-option {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 13px; font-weight: 500;
+    padding: 13px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .2s;
   }
-  .live-badge {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 11px; color: var(--green);
-  }
-  .live-badge::before {
-    content: '';
-    width: 6px; height: 6px;
-    border-radius: 50%; background: var(--green);
-    animation: blink 1.5s infinite;
-  }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .vote-option:last-child { margin-bottom: 0; }
+  .vote-option:hover, .vote-option.voted { border-color: var(--accent); background: rgba(232,213,163,0.06); }
+  .vote-option-name { font-size: 14px; font-weight: 500; }
+  .vote-option-count { font-size: 12px; color: var(--muted); }
+  .vote-option.voted .vote-option-count { color: var(--accent); }
+  .vote-thumb { font-size: 18px; opacity: 0; transition: opacity .2s; }
+  .vote-option.voted .vote-thumb { opacity: 1; }
 
-  .feed-entry {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 13px 20px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-  .feed-entry:last-child { border-bottom: none; }
-  .fava { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: #0a0a0a; flex-shrink: 0; margin-top: 1px; }
-  .ftxt { flex: 1; line-height: 1.55; }
-  .ftxt b { font-weight: 500; }
-  .fts { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .crew-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+  .crew-row:last-child { border-bottom:none; }
+  .crew-l { display:flex; align-items:center; gap:12px; }
+  .cava { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:#0a0a0a; flex-shrink:0; }
+  .cn { font-size:14px; font-weight:500; }
+  .cs { font-size:12px; color:var(--muted); margin-top:1px; }
+  .badge { font-size:11px; font-weight:500; padding:4px 10px; border-radius:20px; }
+  .b-in { background:rgba(125,186,138,0.15); color:var(--green); }
+  .b-mb { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
 
   /* ════════════ PAGE HEADERS ════════════ */
   .pg-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 4px; }
@@ -1303,23 +1276,40 @@
 
     <!-- ── MEET ── -->
     <div id="page-meet" class="page">
-      <div style="padding:24px 28px 0;">
-        <div class="pg-title">Meet Up</div>
-        <div class="pg-sub">Real-time crew coordination</div>
+      <!-- No plan state -->
+      <div id="meet-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">🌙</div>
+        <div class="pg-title" style="margin-bottom:8px;">No plan tonight</div>
+        <div style="font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;">Create a plan first and invite your crew — then you can coordinate here.</div>
+        <button class="plan-empty-btn" onclick="openCreatePlan()">+ Create a plan</button>
       </div>
-      <div class="stats-row" style="padding:0 28px;">
-        <div class="stat"><div class="stat-ic">📍</div><div class="stat-lbl">Meet Point</div><div class="stat-val" style="font-size:18px">XOYO</div><div class="stat-sub">Islington · Next stop</div></div>
-        <div class="stat"><div class="stat-ic">👥</div><div class="stat-lbl">Crew Status</div><div class="stat-val">4 / 5</div><div class="stat-sub">Tara en route</div></div>
-        <div class="stat"><div class="stat-ic">🚶</div><div class="stat-lbl">Tara's ETA</div><div class="stat-val">12 min</div><div class="stat-sub">From Angel tube</div></div>
-        <div class="stat"><div class="stat-ic">🌡</div><div class="stat-lbl">Queue Status</div><div class="stat-val" style="color:var(--green)">Low</div><div class="stat-sub">~10 min wait</div></div>
-      </div>
-      <div style="padding:0 28px 28px;">
-        <div class="feed-box">
-          <div class="feed-hd">Live Updates <span class="live-badge">Live</span></div>
-          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#e8c4a3,#d4a882)">TK</div><div><div class="ftxt"><b>Tara</b> is heading your way — ETA 12 min</div><div class="fts">Just now</div></div></div>
-          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#a3c4e8,#82b0d4)">MA</div><div><div class="ftxt"><b>Marcus</b> arrived at XOYO</div><div class="fts">4 min ago</div></div></div>
-          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#c4a3e8,#a882d4)">PM</div><div><div class="ftxt"><b>Priya</b> checked in at XOYO 🎉</div><div class="fts">8 min ago</div></div></div>
-          <div class="feed-entry"><div class="fava" style="background:linear-gradient(135deg,#a3e8c4,#82d4a3)">AH</div><div><div class="ftxt"><b>Aisha</b> voted to skip the queue — use the side door</div><div class="fts">11 min ago</div></div></div>
+
+      <!-- Active meet state -->
+      <div id="meet-active" style="display:none;padding:20px 16px 100px;">
+        <div class="pg-title" id="meet-plan-name">Tonight</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;" id="meet-plan-date"></div>
+
+        <!-- Who's coming -->
+        <div class="pcard" style="margin-bottom:12px;">
+          <div class="pcard-label">Who's coming</div>
+          <div id="meet-crew-list"></div>
+        </div>
+
+        <!-- Share location -->
+        <div class="pcard" style="margin-bottom:12px;">
+          <div class="pcard-label">Your location</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Share a link so your crew can see where you are in real time.</div>
+          <button id="share-loc-btn" onclick="shareLocation()" style="width:100%;padding:13px;background:var(--accent);color:#0a0a0a;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">📍 Share my location</button>
+          <div id="loc-status" style="display:none;margin-top:12px;font-size:13px;color:var(--green);text-align:center;"></div>
+        </div>
+
+        <!-- Vote on next stop -->
+        <div class="pcard">
+          <div class="pcard-label">Vote · Where next?</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Pick your next stop from the plan — your crew votes too.</div>
+          <div id="vote-options"></div>
+          <div id="vote-result" style="display:none;margin-top:14px;padding:12px 14px;background:rgba(125,186,138,0.1);border:1px solid rgba(125,186,138,0.2);border-radius:10px;font-size:13px;color:var(--green);"></div>
+          <button onclick="showPage('page-discover', document.querySelector('.nav-btn:nth-child(2)'))" style="margin-top:12px;width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;cursor:pointer;">+ Suggest somewhere from Discover</button>
         </div>
       </div>
     </div>
@@ -1544,6 +1534,7 @@
     document.getElementById(id).classList.add('active');
     if (btn) btn.classList.add('active');
     updateBackBtn(id);
+    if (id === 'page-meet') refreshMeetPage();
   }
 
   function updateBackBtn(pageId) {
@@ -1893,6 +1884,97 @@
     document.getElementById('plan-active').style.display = 'none';
     document.getElementById('plan-empty').style.display = 'flex';
     toast('Plan deleted');
+  }
+
+  // ── Meet Up page ──
+  function refreshMeetPage() {
+    if (!currentPlan) {
+      document.getElementById('meet-empty').style.display = 'flex';
+      document.getElementById('meet-active').style.display = 'none';
+      return;
+    }
+    document.getElementById('meet-empty').style.display = 'none';
+    document.getElementById('meet-active').style.display = 'block';
+
+    document.getElementById('meet-plan-name').textContent = currentPlan.name || 'Tonight';
+    var dateStr = currentPlan.date ? new Date(currentPlan.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }) : '';
+    document.getElementById('meet-plan-date').textContent = dateStr;
+
+    // Crew list
+    var crew = document.getElementById('meet-crew-list');
+    crew.innerHTML = '';
+    var colors = ['linear-gradient(135deg,#c4a882,#e8d5a3)','linear-gradient(135deg,#a3c4e8,#82b0d4)','linear-gradient(135deg,#e8a3c4,#d482b0)','linear-gradient(135deg,#a3e8c4,#82d4a3)','linear-gradient(135deg,#c4a3e8,#a882d4)'];
+    var ownerInit = getInitials(currentPlan.owner_name || 'You');
+    crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:' + colors[0] + '">' + ownerInit + '</div><div><div class="cn">' + (currentPlan.owner_name || 'You') + '</div><div class="cs">Organiser · In</div></div></div><span class="badge b-in">✓ In</span></div>';
+    (currentPlan.invitees || []).forEach(function(email, i) {
+      var ini = email[0].toUpperCase();
+      crew.innerHTML += '<div class="crew-row"><div class="crew-l"><div class="cava" style="background:' + colors[(i+1)%colors.length] + '">' + ini + '</div><div><div class="cn">' + email + '</div><div class="cs">Invited</div></div></div><span class="badge b-mb">Pending</span></div>';
+    });
+    if ((currentPlan.invitees||[]).length === 0) {
+      crew.innerHTML += '<div style="font-size:13px;color:var(--muted);padding:8px 0;">No crew invited yet — share your plan link to invite people.</div>';
+    }
+
+    // Vote options from stops
+    var voteEl = document.getElementById('vote-options');
+    var stops = currentPlan.stops || [];
+    if (stops.length === 0) {
+      voteEl.innerHTML = '<div style="font-size:13px;color:var(--muted);">Add stops to your plan first \u2014 they\'ll appear here as vote options.</div>';
+    } else {
+      voteEl.innerHTML = '';
+      stops.forEach(function(stop, i) {
+        var div = document.createElement('div');
+        div.className = 'vote-option';
+        div.id = 'vote-' + i;
+        div.innerHTML = '<div><div class="vote-option-name">' + stop.place + '</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="vote-option-count" id="vote-count-' + i + '">0 votes</span><span class="vote-thumb">👍</span></div>';
+        div.onclick = function() { castVote(i, stop.place); };
+        voteEl.appendChild(div);
+      });
+    }
+  }
+
+  var myVote = null;
+  var voteCounts = {};
+
+  function castVote(i, name) {
+    // Remove previous vote
+    if (myVote !== null) {
+      document.getElementById('vote-' + myVote).classList.remove('voted');
+      voteCounts[myVote] = Math.max(0, (voteCounts[myVote]||0) - 1);
+      document.getElementById('vote-count-' + myVote).textContent = voteCounts[myVote] + ' votes';
+    }
+    myVote = i;
+    voteCounts[i] = (voteCounts[i]||0) + 1;
+    document.getElementById('vote-' + i).classList.add('voted');
+    document.getElementById('vote-count-' + i).textContent = voteCounts[i] + ' vote' + (voteCounts[i]===1?'':'s');
+    var result = document.getElementById('vote-result');
+    result.style.display = 'block';
+    result.textContent = '👍 You voted for ' + name + ' — link your crew so they can vote too!';
+  }
+
+  function shareLocation() {
+    if (!navigator.geolocation) {
+      toast('Location not supported on this device');
+      return;
+    }
+    var btn = document.getElementById('share-loc-btn');
+    btn.textContent = 'Getting location…';
+    btn.disabled = true;
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude.toFixed(5);
+      var lng = pos.coords.longitude.toFixed(5);
+      var mapsLink = 'https://maps.google.com/?q=' + lat + ',' + lng;
+      navigator.clipboard.writeText(mapsLink).then(function() {
+        document.getElementById('loc-status').style.display = 'block';
+        document.getElementById('loc-status').textContent = '📍 Location link copied! Paste it in your group chat.';
+        btn.textContent = '📍 Share my location';
+        btn.disabled = false;
+        toast('Location link copied ✓');
+      });
+    }, function() {
+      toast('Could not get location — check permissions');
+      btn.textContent = '📍 Share my location';
+      btn.disabled = false;
+    });
   }
 
   // ── Load plan from URL on start ──
