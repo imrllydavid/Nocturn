@@ -1334,9 +1334,15 @@
         <input type="text" id="cp-name" placeholder="e.g. Friday Night Out" />
       </div>
 
-      <div class="cp-field">
-        <label>Date</label>
-        <input type="date" id="cp-date" />
+      <div style="display:flex; gap:10px;">
+        <div class="cp-field" style="flex:1;">
+          <label>Date</label>
+          <input type="date" id="cp-date" />
+        </div>
+        <div class="cp-field" style="flex:1;">
+          <label>Start time <span style="color:var(--muted);font-size:10px;text-transform:none;letter-spacing:0;">optional</span></label>
+          <input type="time" id="cp-start-time" />
+        </div>
       </div>
 
       <button class="cp-submit" onclick="submitPlan()">Let's go →</button>
@@ -1591,9 +1597,10 @@
   var invitees = [];
 
   function openCreatePlan() {
-    // Set today's date as default
     var today = new Date().toISOString().split('T')[0];
     document.getElementById('cp-date').value = today;
+    document.getElementById('cp-start-time').value = '';
+    document.getElementById('cp-name').value = '';
     document.getElementById('create-plan-overlay').classList.add('open');
   }
 
@@ -1664,13 +1671,15 @@
     var userName = user.user_metadata?.full_name || user.email;
 
     // Save to Supabase
+    var startTime = document.getElementById('cp-start-time').value || '';
     var { data, error } = await sb.from('plans').insert({
       name: name,
       date: date,
       stops: stops,
       invitees: invitees,
       owner_id: user.id,
-      owner_name: userName
+      owner_name: userName,
+      start_time: startTime
     }).select().single();
 
     btn.disabled = false;
@@ -1703,7 +1712,8 @@
 
     document.getElementById('active-plan-title').textContent = plan.name;
     var dateStr = plan.date ? new Date(plan.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' }) : '';
-    document.getElementById('active-plan-sub').textContent = dateStr + (plan.invitees && plan.invitees.length ? ' · ' + (plan.invitees.length + 1) + ' invited' : '');
+    var timeStr = plan.start_time ? ' · from ' + formatTime(plan.start_time) : '';
+    document.getElementById('active-plan-sub').textContent = dateStr + timeStr + (plan.invitees && plan.invitees.length ? ' · ' + (plan.invitees.length + 1) + ' invited' : '');
 
     // Build timeline
     var tl = document.getElementById('active-tl');
