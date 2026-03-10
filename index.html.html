@@ -828,6 +828,9 @@
     flex-shrink: 0;
   }
   .tl-insert-name { flex: 1; min-width: 140px; }
+  .tl-insert-address {
+    width: 100%;
+  }
   .tl-insert-confirm {
     padding: 8px 16px;
     background: var(--accent);
@@ -1752,10 +1755,12 @@
       + '</div>'
       + addressHtml
       + '<div class="tl-actions">'
-      + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit time</button>'
+      + '<button class="tl-action-btn" onclick="editStop(' + i + ')">✏ Edit</button>'
       + '<button class="tl-action-btn del" onclick="deleteStop(' + i + ')">✕ Remove</button>'
       + '</div>'
       + '<div class="tl-edit-row" id="tl-edit-' + i + '">'
+      + '<input type="text" class="tl-edit-name" id="tl-edit-name-' + i + '" value="' + escHtml(stop.place||'') + '" placeholder="Stop name" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:2px;" onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border)\'"/>'
+      + '<input type="text" class="tl-edit-addr" id="tl-edit-addr-' + i + '" value="' + escHtml(stop.address||'') + '" placeholder="Address (optional)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;outline:none;margin-bottom:2px;" onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border)\'"/>'
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
       + '<input type="time" class="tl-edit-time" id="tl-edit-time-' + i + '" value="' + (stop.time||'') + '" />'
       + '<span style="color:var(--muted);font-size:12px;flex-shrink:0;">to</span>'
@@ -1785,9 +1790,10 @@
     form.id = 'tl-insert-form-' + afterIdx;
     form.innerHTML =
       '<div class="tl-insert-form-row">'
-      + '<input type="time" class="tl-insert-time" id="tl-ins-time-' + afterIdx + '" placeholder="Time" />'
-      + '<input type="text" class="tl-insert-name" id="tl-ins-name-' + afterIdx + '" placeholder="Venue or stop name *" />'
+      + '<input type="time" class="tl-insert-time" id="tl-ins-time-' + afterIdx + '" />'
+      + '<input type="text" class="tl-insert-name" id="tl-ins-name-' + afterIdx + '" placeholder="Stop name *" />'
       + '</div>'
+      + '<input type="text" class="tl-insert-address" id="tl-ins-addr-' + afterIdx + '" placeholder="Address (optional)" />'
       + '<div style="display:flex;gap:8px;">'
       + '<button class="tl-insert-confirm" onclick="confirmInsert(' + afterIdx + ')">Add stop</button>'
       + '<button class="tl-insert-cancel" onclick="closeInsertForm(' + afterIdx + ')">Cancel</button>'
@@ -1819,11 +1825,13 @@
   function confirmInsert(afterIdx) {
     var nameEl = document.getElementById('tl-ins-name-' + afterIdx);
     var timeEl = document.getElementById('tl-ins-time-' + afterIdx);
+    var addrEl = document.getElementById('tl-ins-addr-' + afterIdx);
     var name = nameEl ? nameEl.value.trim() : '';
     if (!name) { toast('Enter a stop name'); nameEl && nameEl.focus(); return; }
     var time = timeEl ? timeEl.value : '';
+    var address = addrEl ? addrEl.value.trim() : '';
     var stops = currentPlan.stops || [];
-    stops.splice(afterIdx, 0, { place: name, time: time, end_time: '', address: '' });
+    stops.splice(afterIdx, 0, { place: name, time: time, end_time: '', address: address });
     currentPlan.stops = stops;
     showPlanLocally(currentPlan);
     toast(name + ' added ✓');
@@ -1913,10 +1921,14 @@
   function saveStop(i) {
     var newTime = document.getElementById('tl-edit-time-' + i).value;
     var newEndTime = document.getElementById('tl-edit-end-' + i).value;
+    var newName = document.getElementById('tl-edit-name-' + i);
+    var newAddr = document.getElementById('tl-edit-addr-' + i);
+    if (newName && newName.value.trim()) currentPlan.stops[i].place = newName.value.trim();
+    if (newAddr) currentPlan.stops[i].address = newAddr.value.trim();
     currentPlan.stops[i].time = newTime;
     currentPlan.stops[i].end_time = newEndTime;
     showPlanLocally(currentPlan);
-    toast('Time updated ✓');
+    toast('Stop updated ✓');
   }
 
   function deleteStop(i) {
