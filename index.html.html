@@ -2217,58 +2217,61 @@
   }
 
   function initMainMap() {
-    if (_mainMap) {
-      _mainMap.invalidateSize();
-      return;
+    if (_mainMap) { _mainMap.invalidateSize(); return; }
+    if (typeof L === 'undefined') {
+      console.log('[map] Leaflet not loaded yet, retrying...');
+      setTimeout(initMainMap, 200); return;
     }
-    if (typeof L === 'undefined') { setTimeout(initMainMap, 200); return; }
 
     var el = document.getElementById('main-map');
-    var wrap = document.getElementById('map-wrap');
-    if (!el || !wrap) { setTimeout(initMainMap, 200); return; }
+    if (!el) { console.log('[map] #main-map element not found'); return; }
 
-    // Explicitly size the container using the parent's actual dimensions
-    var h = wrap.getBoundingClientRect().height;
-    if (h < 10) {
-      // Parent has no height yet — force it and retry
-      wrap.style.height = (window.innerHeight - 120) + 'px';
-      el.style.height = wrap.style.height;
-      setTimeout(initMainMap, 100);
-      return;
-    }
-    el.style.width  = wrap.offsetWidth  + 'px';
-    el.style.height = h + 'px';
+    // Force hard pixel size — don't rely on CSS at all
+    var winH = window.innerHeight;
+    var winW = window.innerWidth;
+    el.style.position = 'absolute';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.width = winW + 'px';
+    el.style.height = (winH - 120) + 'px';
 
-    _mainMap = L.map(el, {
-      zoomControl: false,
-      attributionControl: true,
-      dragging: true,
-      scrollWheelZoom: false,
-      doubleClickZoom: true,
-      touchZoom: true
-    });
+    console.log('[map] Initialising at', winW, 'x', (winH - 120));
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OSM',
-      maxZoom: 19
-    }).addTo(_mainMap);
-
-    _mainMap.setView([51.5175, -0.105], 14);
-
-    _mainMapVenues.forEach(function(v) {
-      var cls = v.green ? 'lmap-venue-pin green' : v.hot ? 'lmap-venue-pin' : 'lmap-venue-pin dim';
-      var icon = L.divIcon({
-        className: '',
-        html: '<div class="' + cls + '">' + v.name + '</div>',
-        iconAnchor: [0, 28]
+    try {
+      _mainMap = L.map(el, {
+        zoomControl: false,
+        attributionControl: true,
+        dragging: true,
+        scrollWheelZoom: false,
+        doubleClickZoom: true,
+        touchZoom: true
       });
-      L.marker([v.lat, v.lng], { icon: icon })
-        .on('click', function() { modal(v.name, v.venue, v.hours, v.price, v.about, v.address); })
-        .addTo(_mainMap);
-    });
 
-    setTimeout(function() { _mainMap.invalidateSize(); }, 100);
-    setTimeout(function() { _mainMap.invalidateSize(); }, 500);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OSM',
+        maxZoom: 19
+      }).addTo(_mainMap);
+
+      _mainMap.setView([51.5175, -0.105], 14);
+
+      _mainMapVenues.forEach(function(v) {
+        var cls = v.green ? 'lmap-venue-pin green' : v.hot ? 'lmap-venue-pin' : 'lmap-venue-pin dim';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div class="' + cls + '">' + v.name + '</div>',
+          iconAnchor: [0, 28]
+        });
+        L.marker([v.lat, v.lng], { icon: icon })
+          .on('click', function() { modal(v.name, v.venue, v.hours, v.price, v.about, v.address); })
+          .addTo(_mainMap);
+      });
+
+      console.log('[map] Init complete');
+      setTimeout(function() { _mainMap.invalidateSize(); console.log('[map] invalidateSize'); }, 300);
+    } catch(e) {
+      console.error('[map] Init failed:', e);
+      _mainMap = null;
+    }
   }
 
   function mainMapZoom(dir) {
