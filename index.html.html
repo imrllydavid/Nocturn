@@ -2247,8 +2247,8 @@
         touchZoom: true
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OSM',
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OSM © CARTO',
         maxZoom: 19
       }).addTo(_mainMap);
 
@@ -2312,8 +2312,8 @@
       doubleClickZoom: false,
       touchZoom: true
     });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OSM',
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OSM © CARTO',
       maxZoom: 18
     }).addTo(_leafletMap);
     // Default view — London centre, will be recentred when data loads
