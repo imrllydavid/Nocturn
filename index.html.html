@@ -7,8 +7,13 @@
 <title>Nocturn — Nightlife Coordination</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" onload="if(typeof initMainMap==='function') initMainMap();"></script>
+<script>
+  function onGoogleMapsLoaded() {
+    if (typeof initMainMap === 'function') initMainMap();
+    if (typeof initCrewMap === 'function') initCrewMap();
+  }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_--NupM7ydjHW7zGxCd5XillBMkp7jSk&callback=onGoogleMapsLoaded&loading=async" async defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -346,7 +351,7 @@
     flex-direction: column;
   }
 
-  /* Main map — same dark tile treatment as crew map */
+  /* Main map */
   #main-map {
     position: absolute;
     inset: 0;
@@ -359,15 +364,6 @@
     flex: 1;
     min-height: 300px;
   }
-  #main-map .leaflet-tile { filter: brightness(0.5) saturate(0.3) invert(1) hue-rotate(200deg); }
-  #main-map .leaflet-container { background: #0d1018; }
-  #main-map .leaflet-control-attribution {
-    font-size: 8px !important;
-    background: rgba(0,0,0,0.4) !important;
-    color: rgba(255,255,255,0.25) !important;
-  }
-  #main-map .leaflet-control-attribution a { color: rgba(255,255,255,0.3) !important; }
-  #main-map .leaflet-control-zoom { display: none; } /* we use custom controls */
 
   /* Custom map controls */
   .map-ctrl-group {
@@ -936,16 +932,8 @@
     margin-bottom: 14px;
     position: relative;
   }
-  /* Dark tile filter */
-  .crew-map .leaflet-tile { filter: brightness(0.5) saturate(0.3) invert(1) hue-rotate(200deg); }
-  .crew-map .leaflet-container { background: #0d1018; }
-  /* Hide leaflet attribution (keep it but make it subtle) */
-  .crew-map .leaflet-control-attribution {
-    font-size: 8px !important;
-    background: rgba(0,0,0,0.4) !important;
-    color: rgba(255,255,255,0.25) !important;
-  }
-  .crew-map .leaflet-control-attribution a { color: rgba(255,255,255,0.3) !important; }
+  /* Crew map container */
+  .crew-map { background: #0d1018; }
   /* Custom marker styles used via divIcon */
   .lmap-venue-pin {
     background: var(--surface);
@@ -2217,64 +2205,64 @@
   }
 
   function initMainMap() {
-    if (_mainMap) { _mainMap.invalidateSize(); return; }
-    if (typeof L === 'undefined') {
-      console.log('[map] Leaflet not loaded yet, retrying...');
-      setTimeout(initMainMap, 200); return;
-    }
-
+    if (_mainMap) return;
+    if (typeof google === 'undefined' || !google.maps) { setTimeout(initMainMap, 200); return; }
     var el = document.getElementById('main-map');
-    if (!el) { console.log('[map] #main-map element not found'); return; }
+    if (!el) return;
 
-    // Force hard pixel size — don't rely on CSS at all
-    var winH = window.innerHeight;
-    var winW = window.innerWidth;
-    el.style.position = 'absolute';
-    el.style.top = '0';
-    el.style.left = '0';
-    el.style.width = winW + 'px';
-    el.style.height = (winH - 120) + 'px';
+    console.log('[map] Initialising Google Maps');
 
-    console.log('[map] Initialising at', winW, 'x', (winH - 120));
+    var darkStyles = [
+      { elementType: 'geometry', stylers: [{ color: '#0d1018' }] },
+      { elementType: 'labels.text.fill', stylers: [{ color: '#6b6b6b' }] },
+      { elementType: 'labels.text.stroke', stylers: [{ color: '#0d1018' }] },
+      { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1a1f2e' }] },
+      { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d1018' }] },
+      { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#252d3d' }] },
+      { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#080c12' }] },
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+      { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1a1f2e' }] },
+    ];
 
-    try {
-      _mainMap = L.map(el, {
-        zoomControl: false,
-        attributionControl: true,
-        dragging: true,
-        scrollWheelZoom: false,
-        doubleClickZoom: true,
-        touchZoom: true
+    _mainMap = new google.maps.Map(el, {
+      center: { lat: 51.5175, lng: -0.105 },
+      zoom: 14,
+      styles: darkStyles,
+      disableDefaultUI: true,
+      gestureHandling: 'greedy',
+    });
+
+    // Venue markers
+    _mainMapVenues.forEach(function(v) {
+      var marker = new google.maps.Marker({
+        position: { lat: v.lat, lng: v.lng },
+        map: _mainMap,
+        label: {
+          text: v.name,
+          color: v.green ? '#7dba8a' : v.hot ? '#e8d5a3' : '#888888',
+          fontSize: '11px',
+          fontFamily: 'DM Sans, sans-serif',
+        },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: v.hot || v.green ? 6 : 4,
+          fillColor: v.green ? '#7dba8a' : v.hot ? '#e8d5a3' : '#555',
+          fillOpacity: 1,
+          strokeColor: '#0d1018',
+          strokeWeight: 2,
+          labelOrigin: new google.maps.Point(0, -2),
+        }
       });
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-        subdomains: ['a','b','c'],
-        crossOrigin: true
-      }).addTo(_mainMap);
-
-      _mainMap.setView([51.5175, -0.105], 14);
-
-      _mainMapVenues.forEach(function(v) {
-        var cls = v.green ? 'lmap-venue-pin green' : v.hot ? 'lmap-venue-pin' : 'lmap-venue-pin dim';
-        var icon = L.divIcon({
-          className: '',
-          html: '<div class="' + cls + '">' + v.name + '</div>',
-          iconAnchor: [0, 28]
-        });
-        L.marker([v.lat, v.lng], { icon: icon })
-          .on('click', function() { modal(v.name, v.venue, v.hours, v.price, v.about, v.address); })
-          .addTo(_mainMap);
+      marker.addListener('click', function() {
+        modal(v.name, v.venue, v.hours, v.price, v.about, v.address);
       });
+    });
 
-      console.log('[map] Init complete');
-      setTimeout(function() { _mainMap.invalidateSize(); console.log('[map] invalidateSize'); }, 300);
-    } catch(e) {
-      console.error('[map] Init failed:', e);
-      _mainMap = null;
-    }
+    console.log('[map] Init complete');
   }
+
+
 
   function mainMapZoom(dir) {
     if (!_mainMap) return;
@@ -2286,34 +2274,45 @@
     if (!_mainMap) { initMainMap(); setTimeout(mainMapLocate, 300); return; }
     navigator.geolocation.getCurrentPosition(function(pos) {
       var lat = pos.coords.latitude, lng = pos.coords.longitude;
-      _mainMap.setView([lat, lng], 15);
-      if (_mainMapYouMarker) _mainMap.removeLayer(_mainMapYouMarker);
-      var icon = L.divIcon({ className: '', html: '<div class="lmap-you-dot"></div>', iconAnchor: [7, 7] });
-      _mainMapYouMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 }).addTo(_mainMap);
+      _mainMap.setCenter({ lat: lat, lng: lng });
+      _mainMap.setZoom(15);
+      if (_mainMapYouMarker) _mainMapYouMarker.setMap(null);
+      _mainMapYouMarker = new google.maps.Marker({
+        position: { lat: lat, lng: lng },
+        map: _mainMap,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#4a9eff',
+          fillOpacity: 1,
+          strokeColor: '#fff',
+          strokeWeight: 3,
+        },
+        zIndex: 999
+      });
       toast('📍 Found you');
     }, function() { toast('Location access denied'); });
   }
 
-  // Also update main map you-dot when live location is active
   function updateMainMapYou(lat, lng) {
-    if (!_mainMap) return;
-    if (_mainMapYouMarker) _mainMap.removeLayer(_mainMapYouMarker);
-    var icon = L.divIcon({ className: '', html: '<div class="lmap-you-dot"></div>', iconAnchor: [7, 7] });
-    _mainMapYouMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 }).addTo(_mainMap);
+    if (!_mainMap || typeof google === 'undefined') return;
+    if (_mainMapYouMarker) _mainMapYouMarker.setMap(null);
+    _mainMapYouMarker = new google.maps.Marker({
+      position: { lat: lat, lng: lng },
+      map: _mainMap,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#4a9eff',
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 3,
+      },
+      zIndex: 999
+    });
   }
 
-  function initLeafletMap() {
-    if (_leafletMap) return;
-    var el = document.getElementById('crew-map');
-    if (!el || typeof L === 'undefined') return;
-    _leafletMap = L.map('crew-map', {
-      zoomControl: false,
-      attributionControl: true,
-      dragging: true,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      touchZoom: true
-    });
+);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
@@ -2325,65 +2324,75 @@
   }
 
   function clearLeafletMarkers() {
-    _leafletMarkers.forEach(function(m) { _leafletMap.removeLayer(m); });
+    _leafletMarkers.forEach(function(m) { m.setMap(null); });
     _leafletMarkers = [];
-    if (_leafletYouMarker) { _leafletMap.removeLayer(_leafletYouMarker); _leafletYouMarker = null; }
+    if (_leafletYouMarker) { _leafletYouMarker.setMap(null); _leafletYouMarker = null; }
   }
 
   function renderCrewMap(stops) {
-    if (typeof L === 'undefined') return;
-    initLeafletMap();
+    if (typeof google === 'undefined' || !google.maps) return;
+    initCrewMap();
     clearLeafletMarkers();
+    if (!_leafletMap) return;
 
-    var bounds = [];
+    var bounds = new google.maps.LatLngBounds();
+    var hasPoints = false;
 
-    // Venue pins for stops that have coordinates
     stops.forEach(function(stop) {
       if (!stop.lat || !stop.lng) return;
-      var name = truncate(stop.place || 'Stop', 16);
-      var icon = L.divIcon({
-        className: '',
-        html: '<div class="lmap-venue-pin">' + escHtml(name) + '</div>',
-        iconAnchor: [0, 28]
+      var marker = new google.maps.Marker({
+        position: { lat: stop.lat, lng: stop.lng },
+        map: _leafletMap,
+        label: {
+          text: truncate(stop.place || 'Stop', 14),
+          color: '#e8d5a3',
+          fontSize: '10px',
+          fontFamily: 'DM Sans, sans-serif',
+        },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 5,
+          fillColor: '#e8d5a3',
+          fillOpacity: 1,
+          strokeColor: '#0d1018',
+          strokeWeight: 2,
+          labelOrigin: new google.maps.Point(0, -2),
+        }
       });
-      var m = L.marker([stop.lat, stop.lng], { icon: icon }).addTo(_leafletMap);
-      _leafletMarkers.push(m);
-      bounds.push([stop.lat, stop.lng]);
+      _leafletMarkers.push(marker);
+      bounds.extend({ lat: stop.lat, lng: stop.lng });
+      hasPoints = true;
     });
 
-    // Your dot if sharing
     if (liveLocActive && window._myLat) {
-      var youIcon = L.divIcon({ className: '', html: '<div class="lmap-you-dot"></div>', iconAnchor: [7, 7] });
-      _leafletYouMarker = L.marker([window._myLat, window._myLng], { icon: youIcon, zIndexOffset: 1000 }).addTo(_leafletMap);
-      bounds.push([window._myLat, window._myLng]);
+      _leafletYouMarker = new google.maps.Marker({
+        position: { lat: window._myLat, lng: window._myLng },
+        map: _leafletMap,
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: '#4a9eff', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
+        zIndex: 999
+      });
+      bounds.extend({ lat: window._myLat, lng: window._myLng });
+      hasPoints = true;
     }
 
-    // Crew dots from live location data
-    var gradients = CREW_DOT_COLORS;
     Object.values(crewLocations).forEach(function(loc, idx) {
-      var color = gradients[idx % gradients.length];
-      var icon = L.divIcon({
-        className: '',
-        html: '<div class="lmap-crew-dot" style="background:' + color + ';"></div>',
-        iconAnchor: [6, 6]
+      var color = CREW_DOT_COLORS[idx % CREW_DOT_COLORS.length];
+      var m = new google.maps.Marker({
+        position: { lat: loc.lat, lng: loc.lng },
+        map: _leafletMap,
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: color, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
+        title: truncate(loc.name, 14),
+        zIndex: 998
       });
-      var m = L.marker([loc.lat, loc.lng], { icon: icon })
-        .bindTooltip(truncate(loc.name, 14), { permanent: false, direction: 'top', className: 'lmap-tooltip' })
-        .addTo(_leafletMap);
       _leafletMarkers.push(m);
-      bounds.push([loc.lat, loc.lng]);
+      bounds.extend({ lat: loc.lat, lng: loc.lng });
+      hasPoints = true;
     });
 
-    // Fit map to all markers, or default to first stop, or London
-    if (bounds.length > 1) {
-      _leafletMap.fitBounds(bounds, { padding: [32, 32], maxZoom: 16 });
-    } else if (bounds.length === 1) {
-      _leafletMap.setView(bounds[0], 15);
-    } else if (stops.length > 0 && stops[0].address) {
-      // No coords yet — show a note
+    if (hasPoints) {
+      _leafletMap.fitBounds(bounds, { top: 32, right: 32, bottom: 32, left: 32 });
     }
 
-    // Legend — crew from crewLocations
     var legendEl = document.getElementById('cmap-crew-legend');
     if (legendEl) {
       legendEl.innerHTML = Object.values(crewLocations).map(function(loc, idx) {
@@ -2394,9 +2403,6 @@
           + '</span>';
       }).join('');
     }
-
-    // Invalidate size in case the container was hidden when map was init'd
-    setTimeout(function() { if (_leafletMap) _leafletMap.invalidateSize(); }, 100);
   }
 
   function truncate(str, n) {
