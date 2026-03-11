@@ -2247,9 +2247,11 @@
         touchZoom: true
       });
 
-      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-        attribution: '© Stadia Maps © OSM',
-        maxZoom: 20
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+        subdomains: ['a','b','c'],
+        crossOrigin: true
       }).addTo(_mainMap);
 
       _mainMap.setView([51.5175, -0.105], 14);
@@ -2312,9 +2314,11 @@
       doubleClickZoom: false,
       touchZoom: true
     });
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-      attribution: '© Stadia Maps © OSM',
-      maxZoom: 20
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+      subdomains: ['a','b','c'],
+      crossOrigin: true
     }).addTo(_leafletMap);
     // Default view — London centre, will be recentred when data loads
     _leafletMap.setView([51.505, -0.09], 14);
